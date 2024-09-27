@@ -1,12 +1,16 @@
 import express from 'express';
 import List from '../models/List.js';
+import { verifyToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Create List
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
   try {
-    const list = new List(req.body);
+    const list = new List({
+      ...req.body,
+      user: req.userId, // Associate the list with the authenticated user
+    });
     await list.save();
     res.status(201).json(list);
   } catch (error) {
@@ -14,10 +18,10 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Get All Lists
-router.get('/', async (req, res) => {
+// Get All Lists for the authenticated user
+router.get('/', verifyToken, async (req, res) => {
   try {
-    const lists = await List.find().populate('todos');
+    const lists = await List.find({ user: req.userId }).populate('todos'); // Filter lists by user
     res.json(lists);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -25,9 +29,9 @@ router.get('/', async (req, res) => {
 });
 
 // Get List by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', verifyToken, async (req, res) => {
   try {
-    const list = await List.findById(req.params.id).populate('todos');
+    const list = await List.findOne({ _id: req.params.id, user: req.userId }).populate('todos'); // Ensure the user owns the list
     if (!list) return res.status(404).json({ message: 'List not found' });
     res.json(list);
   } catch (error) {
@@ -36,9 +40,13 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update List
-router.put('/:id', async (req, res) => {
+router.put('/:id', verifyToken, async (req, res) => {
   try {
-    const list = await List.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const list = await List.findOneAndUpdate(
+      { _id: req.params.id, user: req.userId }, // Ensure the user owns the list
+      req.body,
+      { new: true }
+    );
     if (!list) return res.status(404).json({ message: 'List not found' });
     res.json(list);
   } catch (error) {
@@ -47,9 +55,9 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete List
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verifyToken, async (req, res) => {
   try {
-    const list = await List.findByIdAndDelete(req.params.id);
+    const list = await List.findOneAndDelete({ _id: req.params.id, user: req.userId }); // Ensure the user owns the list
     if (!list) return res.status(404).json({ message: 'List not found' });
     res.json({ message: 'List deleted' });
   } catch (error) {
