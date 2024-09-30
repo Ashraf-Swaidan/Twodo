@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const API_URL = 'http://localhost:5000/api/auth';
 
@@ -10,54 +10,65 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  console.log(user);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
+// Inside AuthProvider
+useEffect(() => {
+  console.log("Checking token on mount");
+  const token = localStorage.getItem('token');
+  if (token) {
+    console.log("Token found:", token);
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    axios.get(`${API_URL}/me`)
+      .then(response => {
+        console.log("User data fetched:", response.data);
+        setUser(response.data);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch user data:", err);
+        logout();
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  } else {
+    console.log("No token found");
+    setLoading(false);
+  }
+}, []);
 
-  // Check for token on initial render and authenticate
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      axios.get(`${API_URL}/me`)
-        .then(response => {
-          setUser(response.data); // Set user state with the response
-        })
-        .catch(() => {
-          logout(); // Log out on error
-        })
-        .finally(() => {
-          setLoading(false); // Set loading to false whether it was successful or not
-        });
-    } else {
-      setLoading(false); // If no token, set loading to false
-    }
-  }, []);
-
-  // Login function
-  const login = async (email, password) => {
-    try {
-      const response = await axios.post(`${API_URL}/login`, { email, password });
-      const token = response.data.token;
-      localStorage.setItem('token', token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setUser(response.data.user);
-      // Navigate to /todos after setting the user
-      navigate('/todos');
-    } catch (error) {
+// Inside login function
+const login = async (email, password) => {
+  console.log("Login function called with:", email);
+  try {
+    const response = await axios.post(`${API_URL}/login`, { email, password });
+    console.log("Login response:", response);
+    const token = response.data.token;
+    localStorage.setItem('token', token);
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    setUser(response.data.user);
+    console.log("User state set:", response.data.user);
+    navigate('/todos'); // Ensure navigate is called after setting user
+  } catch (error) {
+    console.error("Login error:", error);
+    if (error.response && error.response.status === 401) {
       throw new Error('Invalid credentials');
     }
-  };
+    throw new Error('An error occurred while logging in. Please try again.');
+  }
+};
 
   const register = async (userData) => {
     try {
       const response = await axios.post(`${API_URL}/register`, userData);
+      navigate('/login')
       return response.data;
     } catch (error) {
       throw new Error(error.response.data.message);
     }
   };
-
-  const isLoggedIn = () => !!localStorage.getItem('token') && !!user;
 
   const logout = () => {
     setUser(null);
@@ -67,7 +78,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, register, login, logout, isLoggedIn, loading }}>
+    <AuthContext.Provider value={{ user, register, login, logout, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );

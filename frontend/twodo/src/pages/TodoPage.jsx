@@ -113,7 +113,7 @@ function TodoPage() {
   };
 
   return (
-    <div className={`p-6 relative`}>
+    <div className={`p-6 relative transition-all duration-300 ${selectedTodo ? 'ml-0' : ''}`}>
       <h1 className="text-3xl mb-3 font-bold">Your Todos</h1>  
       <div className="flex items-center mb-6">
         <div className="flex items-center">
@@ -122,8 +122,7 @@ function TodoPage() {
             value={searchTerm}
             onChange={handleSearchChange}
             placeholder="Search todo..."
-            className="border rounded focus:ring-1 focus:outline-none focus:ring-zinc-400 p-2 px-4 mr-2 "
-            
+            className="border rounded focus:ring-1 focus:outline-none focus:ring-zinc-400 p-2 px-4 mr-2"
           />
           <FaSearch />
         </div>
@@ -134,14 +133,14 @@ function TodoPage() {
       </div>
       {error && <p className="text-red-500">{error}</p>}
 
-      <div className={`flex transition-all duration-300 ${selectedTodo ? 'ml-0' : ''}`}>
-        <ul className={`w-full divide-y transition-all duration-300 ${selectedTodo ? 'w-2/3' : 'w-full'}`}>
-          <li className="p-3 px-5 border-b-0 rounded flex justify-start items-center border border-neutral-200" >
+      <div className={`flex transition-all duration-300`}>
+        <ul className={`transition-all duration-300 ${selectedTodo ? 'w-2/3' : 'w-full'}`}>
+          <li className="p-3 px-5  rounded flex justify-start items-center border border-neutral-200">
             <span><FaPlus size={15} onClick={() => setIsModalOpen(true)} className="mr-2 cursor-pointer" /></span>
             <span className="font-semibold">Add new task</span>
           </li>
           {filteredTodos.map((todo) => (
-            <li key={todo._id} className="p-2 mb-2 rounded flex justify-between items-center font-semibold ">
+            <li key={todo._id} className="p-2 mb-2 rounded flex justify-between items-center font-semibold">
               <div className="flex items-center">
                 <input
                   type="checkbox"

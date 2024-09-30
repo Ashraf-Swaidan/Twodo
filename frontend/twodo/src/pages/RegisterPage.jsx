@@ -12,7 +12,7 @@ function RegisterPage() {
     e.preventDefault();
     try {
       await register(formData);
-      navigate('/login'); // Redirect to login page after successful registration
+      navigate('/login');
     } catch (err) {
       setError(err.message);
     }
@@ -23,38 +23,67 @@ function RegisterPage() {
   };
 
   return (
-    <div className="h-screen flex justify-center items-center bg-gray-100">
-      <div className="bg-white p-6 rounded shadow-md w-80">
-        <h1 className="text-2xl font-bold mb-4">Register</h1>
-        <form onSubmit={handleSubmit}>
-          {error && <p className="text-red-500">{error}</p>}
-          <input
-            type="text"
-            name="username"
-            placeholder="Username"
-            className="w-full p-2 mb-4 border rounded"
-            value={formData.username}
-            onChange={handleChange}
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            className="w-full p-2 mb-4 border rounded"
-            value={formData.email}
-            onChange={handleChange}
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            className="w-full p-2 mb-4 border rounded"
-            value={formData.password}
-            onChange={handleChange}
-          />
-          <button className="w-full bg-green-500 text-white p-2 rounded">Register</button>
-        </form>
+    <div className="flex flex-col lg:flex-row h-screen">
+      {/* Left Side: Artwork/Image */}
+      
+
+      {/* Right Side: Register Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-5">
+        <div className="w-full max-w-md p-8 space-y-4">
+          <h1 className="text-5xl font-bold text-center text-gray-800">Create Account!</h1>
+
+          {error && <p className="text-red-500 mb-4">{error}</p>}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Username</label>
+              <input
+                type="text"
+                name="username"
+                placeholder="Enter your username"
+                className="block w-full px-4 py-2 mt-1 text-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={formData.username}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Email</label>
+              <input
+                type="email"
+                name="email"
+                placeholder="Enter your email"
+                className="block w-full px-4 py-2 mt-1 text-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Password</label>
+              <input
+                type="password"
+                name="password"
+                placeholder="Enter your password"
+                className="block w-full px-4 py-2 mt-1 text-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <button type="submit" className="w-full py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition">
+              Register
+            </button>
+          </form>
+        </div>
       </div>
+<div className="w-full lg:w-1/2 p-5 flex items-center justify-center">
+        <img 
+          src="/02.webp" 
+          alt="Artistic Representation"
+          className="object-cover h-full rounded-lg" 
+        />
+      </div>
+
     </div>
   );
 }
