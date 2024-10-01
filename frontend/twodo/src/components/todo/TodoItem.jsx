@@ -5,8 +5,7 @@ import  './TodoItem.css';
 
 const TodoItem = ({ todo, toggleCompletion, handleTaskSelection }) => {
 
-  console.log(todo)
-
+  
   // Function to handle due date formatting
   const getDueDateLabel = (dueDate) => {
     if (!dueDate) return null;

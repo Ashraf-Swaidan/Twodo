@@ -3,6 +3,7 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import TodoPage from './pages/TodoPage';
+import ProfilePage from './pages/ProfilePage';
 import MainLayout from './layout/MainLayout';
 import PrivateRoute from './components/PrivateRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -34,6 +35,13 @@ function App() {
                 </PrivateRoute>
               }
             />
+            <Route
+              path='/profile'
+              element={
+                <PrivateRoute>
+                  <ProfilePage />
+                </PrivateRoute>
+              } />
           </Route>
         </Routes>
       </AuthProvider>

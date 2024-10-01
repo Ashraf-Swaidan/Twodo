@@ -1,13 +1,32 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import multer from 'multer';
 import User from '../models/User.js';
-import { verifyToken } from '../middleware/authMiddleware.js'
+import { verifyToken } from '../middleware/authMiddleware.js';
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
 
 dotenv.config();
 const router = express.Router();
-const SECRET = process.env.JWT_SECRET 
+const SECRET = process.env.JWT_SECRET;
+
+// Set storage engine
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/'); // Make sure 'uploads/' folder exists
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Appends the file extension to the filename
+  },
+});
+
+// Initialize multer upload
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 1024 * 1024 * 5 }, // Limit file size to 5MB
+});
 
 // Register User
 router.post('/register', async (req, res) => {
@@ -33,14 +52,15 @@ router.post('/login', async (req, res) => {
     if (!isValid) return res.status(401).json({ message: 'Invalid credentials' });
 
     const token = jwt.sign({ id: user._id }, SECRET, { expiresIn: '1h' });
-    
+
     // Return token and user details
     res.json({
       token,
       user: {
-        id: user._id,            // Include the user's ID
-        email: user.email,       // Include the user's email
-        username: user.username          // Include the user's name (or any other fields you want)
+        id: user._id,
+        email: user.email,
+        username: user.username,
+        avatar: user.avatar // Include avatar URL
       }
     });
   } catch (error) {
@@ -51,13 +71,37 @@ router.post('/login', async (req, res) => {
 // Get current user (Protected route)
 router.get('/me', verifyToken, async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select('-password'); // Exclude password
+    const user = await User.findById(req.userId).select('-password');
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
+
+router.post('/upload-avatar', verifyToken, upload.single('avatar'), async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Delete old avatar if exists
+    if (user.avatar) {
+      const oldAvatarPath = path.resolve('uploads', path.basename(user.avatar));
+      if (fs.existsSync(oldAvatarPath)) {
+        fs.unlinkSync(oldAvatarPath);
+      }
+    }
+
+    // Save new avatar path
+    user.avatar = `/uploads/${req.file.filename}`;
+    await user.save();
+
+    res.json({ message: 'Avatar uploaded successfully', avatar: user.avatar });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 
 
 export default router;

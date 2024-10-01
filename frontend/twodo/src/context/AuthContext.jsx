@@ -77,8 +77,31 @@ const login = async (email, password) => {
     navigate('/login');
   };
 
+  // Avatar upload function
+  const uploadAvatar = async (file) => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    try {
+      const response = await axios.post(`${API_URL}/upload-avatar`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      // Update the user's avatar in the state
+      setUser((prevUser) => ({
+        ...prevUser,
+        avatar: response.data.avatar, // Update avatar in user state
+      }));
+      return response.data;
+    } catch (error) {
+      console.error('Avatar upload failed:', error);
+      throw new Error('Failed to upload avatar. Please try again.');
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, register, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, register, login, logout, loading, uploadAvatar }}>
       {!loading && children}
     </AuthContext.Provider>
   );

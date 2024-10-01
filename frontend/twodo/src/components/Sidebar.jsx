@@ -33,7 +33,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
               <div className="flex items-center cursor-pointer" onClick={toggleDropdown}>
                 {/* Placeholder Image */}
                 <img
-                  src="/01.jpg"
+                  src={`http://localhost:5000${user?.avatar}`}
                   alt="User"
                   className="rounded-full mr-2 w-8"
                 />
@@ -91,10 +91,12 @@ function Sidebar({ isOpen, toggleSidebar }) {
             </div>
           </div>
           <ul>
+            <Link to={'/profile'} >
             <li className="flex items-center p-2 hover:bg-stone-100 rounded">
               <FaUserCircle className="mr-2 text-accent" />
               <span className="text-accent">Profile</span>
             </li>
+            </Link>
             <li className="flex items-center p-2 hover:bg-stone-100 rounded">
               <FaSignOutAlt className="mr-2 text-accent" />
               <button onClick={logout} className="text-accent">Logout</button>

@@ -5,6 +5,7 @@ import cors from 'cors';
 import todoRoutes from './routes/todoRoutes.js';
 import listRoutes from './routes/listRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import path from 'path';
 dotenv.config();
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use('/api/todos', todoRoutes);
 app.use('/api/lists', listRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/uploads', express.static('uploads'));
 
 
 // Connect to MongoDB
