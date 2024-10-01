@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'; 
 import { useTodos } from '../hooks/useTodos';
 import { FaPlus, FaChevronRight, FaSearch } from 'react-icons/fa';
-import TodoDetailsSidebar from '../components/TodoDetailsSidebar';
+import TodoDetailsSidebar from '../components/todo/TodoDetailsSidebar';
 import CreateTodoModal from '../components/todoModals/CreateTodoModal';
+import TodoItem from '../components/todo/TodoItem';
+
 
 function TodoPage() {
   const { fetchTodos, addTodo, updateTodo, deleteTodo } = useTodos();
@@ -134,33 +136,23 @@ function TodoPage() {
       {error && <p className="text-red-500">{error}</p>}
 
       <div className={`flex transition-all duration-300`}>
-        <ul className={`transition-all duration-300 ${selectedTodo ? 'w-2/3' : 'w-full'}`}>
-          <li className="p-3 px-5  rounded flex justify-start items-center border border-neutral-200">
-            <span><FaPlus size={15} onClick={() => setIsModalOpen(true)} className="mr-2 cursor-pointer" /></span>
-            <span className="font-semibold">Add new task</span>
-          </li>
-          {filteredTodos.map((todo) => (
-            <li key={todo._id} className="p-2 mb-2 rounded flex justify-between items-center font-semibold">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={todo.completed}
-                  onChange={() => toggleCompletion(todo._id)}
-                  className="mr-4"
-                />
-                <span className={todo.completed ? 'line-through text-gray-500' : ''}>
-                  {todo.title}
-                </span>
-              </div>
-              <button
-                onClick={() => handleTaskSelection(todo)} 
-                className="ml-2 text-neutral-500"
-              >
-                <FaChevronRight />
-              </button>
-            </li>
-          ))}
-        </ul>
+      <ul className={`divide-y transition-all duration-300 ${selectedTodo ? 'w-2/3' : 'w-2/3'}`}>
+
+        <li className="p-3 px-5 rounded flex justify-start items-center border border-neutral-200">
+          <span><FaPlus size={15} onClick={() => setIsModalOpen(true)} className="mr-2 cursor-pointer" /></span>
+          <span className="font-semibold">Add new task</span>
+        </li>
+  
+        {filteredTodos.map((todo) => (
+            <TodoItem 
+            key={todo._id} 
+            todo={todo} 
+            toggleCompletion={toggleCompletion} 
+            handleTaskSelection={handleTaskSelection} 
+          />
+        ))}
+</ul>
+
 
         <TodoDetailsSidebar 
           todo={selectedTodo} 

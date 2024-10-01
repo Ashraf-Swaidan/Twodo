@@ -1,0 +1,7 @@
+/* Example CSS */
+@media (max-width: 768px) {
+    .sidebar {
+      width: 0; /* Or any smaller width for collapsed state */
+    }
+  }
+  

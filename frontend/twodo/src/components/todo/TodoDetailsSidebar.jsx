@@ -71,7 +71,7 @@ function TodoDetailsSidebar({ todo, onClose, onDelete, onEdit }) {
   };
 
   return (
-    <div className="fixed top-0 right-0 w-1/4 h-full bg-stone-100 rounded-xl m-5 p-5 z-50 overflow-y-auto">
+    <div className="fixed top-0 right-0 w-1/4 h-full bg-secondary p-5 z-50 overflow-y-auto">
       <button onClick={onClose} className=" mb-4">✖</button>
 
       {isEditing ? (
@@ -175,13 +175,13 @@ function TodoDetailsSidebar({ todo, onClose, onDelete, onEdit }) {
           <div className="flex justify-between mt-4">
             <button
               onClick={handleSave}
-              className="bg-black text-white py-2 px-4 rounded-full shadow hover:bg-neutral-800 transition"
+              className="bg-accent text-white py-2 px-4 rounded-full shadow hover:bg-neutral-800 transition"
             >
               Save
             </button>
             <button
               onClick={() => setIsEditing(false)}
-              className="bg-gray-500 text-white py-2 px-4 rounded-full shadow hover:bg-gray-600 transition"
+              className="bg-accent text-white py-2 px-4 rounded-full shadow hover:bg-gray-600 transition"
             >
               Cancel
             </button>

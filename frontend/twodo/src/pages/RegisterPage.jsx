@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 function RegisterPage() {
   const { register } = useAuth();
@@ -23,19 +23,26 @@ function RegisterPage() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen">
+    <div className="flex flex-col lg:flex-row h-screen bg-gray-100">
       {/* Left Side: Artwork/Image */}
-      
+      <div className="w-full lg:w-1/2 p-5 flex items-center justify-center">
+        <img 
+          src="/02.webp" 
+          alt="Artistic Representation"
+          className="object-cover h-full rounded-lg shadow-lg" 
+        />
+      </div>
 
       {/* Right Side: Register Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-5">
-        <div className="w-full max-w-md p-8 space-y-4">
-          <h1 className="text-5xl font-bold text-center text-gray-800">Create Account!</h1>
+        <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-xl">
+          <h1 className="text-5xl font-extrabold text-center text-gray-900">Create Account</h1>
+          <p className="text-lg text-center text-gray-500">Join us and start your journey!</p>
 
-          {error && <p className="text-red-500 mb-4">{error}</p>}
+          {error && <p className="text-red-500 text-center mb-4">{error}</p>}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Username</label>
+              <label className="block text-sm font-semibold text-gray-700">Username</label>
               <input
                 type="text"
                 name="username"
@@ -47,7 +54,7 @@ function RegisterPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
+              <label className="block text-sm font-semibold text-gray-700">Email</label>
               <input
                 type="email"
                 name="email"
@@ -59,7 +66,7 @@ function RegisterPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Password</label>
+              <label className="block text-sm font-semibold text-gray-700">Password</label>
               <input
                 type="password"
                 name="password"
@@ -74,16 +81,15 @@ function RegisterPage() {
               Register
             </button>
           </form>
+
+          <p className="text-center text-gray-500 text-sm">
+            Already have an account?{' '}
+            <Link to="/login" className="text-blue-600 hover:underline">
+              Login
+            </Link>
+          </p>
         </div>
       </div>
-<div className="w-full lg:w-1/2 p-5 flex items-center justify-center">
-        <img 
-          src="/02.webp" 
-          alt="Artistic Representation"
-          className="object-cover h-full rounded-lg" 
-        />
-      </div>
-
     </div>
   );
 }
