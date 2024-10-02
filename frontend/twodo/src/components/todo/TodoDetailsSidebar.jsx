@@ -202,8 +202,10 @@ function TodoDetailsSidebar({ todo, onClose, onDelete, onEdit }) {
             </div>
           )}
 
+          <hr />
+
           {todo.subTasks && todo.subTasks.length > 0 && (
-            <div className="mb-4 bg-gray-50 p-4 rounded-lg shadow-sm">
+            <div className="mb-4 p-4 ">
               <h3 className="text-lg font-semibold mb-2">Subtasks</h3>
               <ul className="list-disc list-inside">
                 {todo.subTasks.map((subTask, index) => (
@@ -223,8 +225,10 @@ function TodoDetailsSidebar({ todo, onClose, onDelete, onEdit }) {
             </div>
           )}
 
+          <hr />
+
           {todo.tags && todo.tags.length > 0 && (
-            <div className="mb-4 bg-gray-50 p-4 rounded-lg shadow-sm">
+            <div className="mb-4 p-4 ">
               <h3 className="text-lg font-semibold mb-2">Tags</h3>
               <div className="flex flex-wrap">
                 {todo.tags.map((tag, index) => (

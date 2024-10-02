@@ -5,6 +5,7 @@ import { Outlet } from 'react-router-dom';
 function MainLayout() {
   // Track the open/closed state of the sidebar
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSmallScreen, setIsSmallScreen] = useState(false); // Track if the screen is small
 
   // Function to toggle sidebar open/close state
   const toggleSidebar = () => {
@@ -14,16 +15,17 @@ function MainLayout() {
   // Effect to handle window resizing
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 768) { // Adjust the breakpoint as needed
+      if (window.innerWidth < 768) {
+        setIsSmallScreen(true);
         setIsSidebarOpen(false); // Collapse sidebar on small screens
       } else {
-        setIsSidebarOpen(true); // Expand sidebar on larger screens
+        setIsSmallScreen(false); // Mark it as not small, but don't auto-open the sidebar
       }
     };
 
     // Initial check
     handleResize();
-    
+
     // Attach the event listener
     window.addEventListener('resize', handleResize);
 

@@ -1,0 +1,12 @@
+@media (max-width: 600px) {
+    .MuiDialog-container {
+      height: 100vh; /* Full height for small screens */
+    }
+    
+    .MuiDialog-paper {
+      height: 100%; /* Full height for small screens */
+      margin: 0; /* Remove default margin */
+      border-radius: 0; /* Remove border radius for a full-screen effect */
+    }
+  }
+  

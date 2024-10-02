@@ -4,7 +4,15 @@ import { FaPlus, FaChevronRight, FaSearch } from 'react-icons/fa';
 import TodoDetailsSidebar from '../components/todo/TodoDetailsSidebar';
 import CreateTodoModal from '../components/todoModals/CreateTodoModal';
 import TodoItem from '../components/todo/TodoItem';
-
+import { Checkbox } from "@nextui-org/react"; 
+import { Skeleton } from '@nextui-org/react'; 
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Button,
+} from '@mui/material';
 
 function TodoPage() {
   const { fetchTodos, addTodo, updateTodo, deleteTodo } = useTodos();
@@ -14,17 +22,22 @@ function TodoPage() {
   const [selectedTodo, setSelectedTodo] = useState(null); 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWarningModalOpen, setIsWarningModalOpen] = useState(false); 
-  const [searchTerm, setSearchTerm] = useState(''); // State for search input
-  const [sortOrder, setSortOrder] = useState('asc'); // State for sorting order
+  const [searchTerm, setSearchTerm] = useState(''); 
+
+  const [loading, setLoading] = useState(true); 
+  const [showCompleted, setShowCompleted] = useState(true); // State for showing completed todos
 
   useEffect(() => {
     const getTodos = async () => {
       try {
+        setLoading(true); 
         const data = await fetchTodos();
         setTodos(data);
-        setFilteredTodos(data); // Initialize filteredTodos
+        setFilteredTodos(data); 
       } catch (err) {
         setError(err.message);
+      } finally {
+        setLoading(false); 
       }
     };
 
@@ -33,21 +46,18 @@ function TodoPage() {
 
   useEffect(() => {
     filterAndSortTodos();
-  }, [todos, searchTerm, sortOrder]);
+  }, [todos, searchTerm, showCompleted]); // Add showCompleted to the dependencies
 
-  // Filter and sort todos based on the search term and sorting order
   const filterAndSortTodos = () => {
-    const filtered = todos.filter(todo =>
-      todo.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const sorted = filtered.sort((a, b) => {
-      const dateA = new Date(a.dueDate);
-      const dateB = new Date(b.dueDate);
-      return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+    const filtered = todos.filter(todo => {
+      const matchesSearch = todo.title.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCompletion = showCompleted || !todo.completed;
+      return matchesSearch && matchesCompletion;
     });
 
-    setFilteredTodos(sorted);
+   
+
+    setFilteredTodos(filtered);
   };
 
   const toggleCompletion = async (id) => {
@@ -76,6 +86,7 @@ function TodoPage() {
       await deleteTodo(id); 
       setTodos((prevTodos) => prevTodos.filter((todo) => todo._id !== id));
       closeSidebar();
+      closeWarningModal();
     } catch (error) {
       setError(error.message);
     }
@@ -110,9 +121,53 @@ function TodoPage() {
     setSearchTerm(e.target.value);
   };
 
-  const handleSortChange = (e) => {
-    setSortOrder(e.target.value);
+  const toggleShowCompleted = () => {
+    setShowCompleted(prev => !prev);
   };
+
+  const groupTodosByDate = (todos) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to the start of today
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0); // Set to the start of tomorrow
+
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
+    nextWeek.setHours(0, 0, 0, 0); // Set to the start of next week
+
+    const groupedTodos = {
+        Overdue: [],
+        Today: [],
+        Tomorrow: [],
+        'This Week': [],
+        Later: [],
+    };
+
+    todos.forEach(todo => {
+        const dueDate = new Date(todo.dueDate);
+        dueDate.setHours(0, 0, 0, 0); // Set to the start of the due date
+
+        if (dueDate < today) {
+            groupedTodos.Overdue.push(todo);
+        } else if (dueDate.toDateString() === today.toDateString()) {
+            groupedTodos.Today.push(todo);
+        } else if (dueDate.toDateString() === tomorrow.toDateString()) {
+            groupedTodos.Tomorrow.push(todo);
+        } else if (dueDate > today && dueDate <= nextWeek) {
+            groupedTodos['This Week'].push(todo);
+        } else {
+            groupedTodos.Later.push(todo);
+        }
+    });
+
+    return groupedTodos;
+};
+
+  
+
+  const groupedTodos = groupTodosByDate(filteredTodos);
 
   return (
     <div className={`p-6 relative transition-all duration-300 ${selectedTodo ? 'ml-0' : ''}`}>
@@ -128,31 +183,64 @@ function TodoPage() {
           />
           <FaSearch />
         </div>
-        <select onChange={handleSortChange} value={sortOrder} className="ml-4 text-stone-400 p-2">
-          <option value="asc">Sort by Date (Asc)</option>
-          <option value="desc">Sort by Date (Desc)</option>
-        </select>
+       
+        <label className="ml-4 flex items-center">
+          
+           <Checkbox
+            radius='full'
+            isSelected={showCompleted}
+            onChange={toggleShowCompleted}
+            color="default" 
+            size="lg" 
+            css={{ margin: 0 }}
+          />
+          Show Completed
+        </label>
       </div>
       {error && <p className="text-red-500">{error}</p>}
 
       <div className={`flex transition-all duration-300`}>
-      <ul className={`divide-y transition-all duration-300 ${selectedTodo ? 'w-2/3' : 'w-2/3'}`}>
+        <ul className={`divide-y transition-all duration-300 ${selectedTodo ? 'w-2/3' : 'w-2/3'}`}>
+          <li onClick={() => setIsModalOpen(true)}  className="cursor-pointer hover:bg-slate-50 p-3 px-5 rounded flex justify-start items-center border border-neutral-200">
+            <span><FaPlus size={15} className="mr-2 " /></span>
+            <span className="font-semibold">Add new task</span>
+          </li>
 
-        <li className="p-3 px-5 rounded flex justify-start items-center border border-neutral-200">
-          <span><FaPlus size={15} onClick={() => setIsModalOpen(true)} className="mr-2 cursor-pointer" /></span>
-          <span className="font-semibold">Add new task</span>
-        </li>
-  
-        {filteredTodos.map((todo) => (
-            <TodoItem 
-            key={todo._id} 
-            todo={todo} 
-            toggleCompletion={toggleCompletion} 
-            handleTaskSelection={handleTaskSelection} 
-          />
-        ))}
-</ul>
-
+          {/* Render skeletons while loading */}
+          {loading ? (
+            Array.from({ length: 3 }).map((_, index) => (
+              <li key={index} className="mb-2 p-3">
+                <div className="max-w-[300px] w-full flex items-center gap-3">
+                  <div>
+                    <Skeleton className="flex mb-7 rounded-full w-7 h-7"/>
+                  </div>
+                  <div className="w-full flex flex-col gap-2">
+                    <Skeleton className="h-4 w-2/5 rounded-lg"/>
+                    <Skeleton className="h-3 w-4/5 rounded-lg"/>
+                    <Skeleton className="h-2 w-3/5 rounded-lg"/>
+                  </div>
+                </div>
+              </li>
+            ))
+          ) : (
+            Object.entries(groupedTodos).map(([dateLabel, todos]) => (
+              todos.length > 0 && (
+                <div key={dateLabel}>
+                  <h2 className="text-lg font-bold mt-4">{dateLabel}</h2>
+                  {todos.map(todo => (
+                    <TodoItem 
+                      key={todo._id} 
+                      todo={todo} 
+                      toggleCompletion={toggleCompletion} 
+                      handleTaskSelection={handleTaskSelection} 
+                      onDelete={openWarningModal} 
+                    />
+                  ))}
+                </div>
+              )
+            ))
+          )}
+        </ul>
 
         <TodoDetailsSidebar 
           todo={selectedTodo} 
@@ -168,19 +256,27 @@ function TodoPage() {
         onCreate={handleCreateTodo}
       />
 
-      {isWarningModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg w-1/3">
-            <h2 className="text-xl font-bold mb-4">Are you sure you want to delete this todo?</h2>
-            <div className="flex justify-end">
-              <button onClick={closeWarningModal} className="mr-2 text-gray-500">Cancel</button>
-              <button onClick={() => handleDelete(selectedTodo._id)} className="bg-red-600 text-white py-2 px-4 rounded-full">
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Warning Confirmation Modal */}
+      <Dialog
+        open={isWarningModalOpen}
+        onClose={closeWarningModal}
+        aria-labelledby="delete-confirmation-dialog"
+      >
+        <DialogContent>
+          <p>Are you sure you want to delete this todo?</p>
+        </DialogContent>
+        <DialogActions>
+          <button onClick={closeWarningModal} className='px-2 py-1 bg-accent text-white rounded hover:bg-slate-600' >
+            Cancel
+          </button>
+          <button 
+            onClick={() => handleDelete(selectedTodo._id)} 
+            className='mr-2 px-2 py-1 bg-danger text-white hover:bg-red-400 rounded'
+          >
+            Delete
+          </button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

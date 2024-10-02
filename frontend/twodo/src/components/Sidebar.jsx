@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { FaHome, FaTasks, FaSignOutAlt, FaUserCircle, FaChevronDown } from 'react-icons/fa';
 import { BsLayoutSidebar } from "react-icons/bs";
 import { useAuth } from '../context/AuthContext';
+import Avatar from '@mui/material/Avatar'; // Import MUI Avatar
 
 function Sidebar({ isOpen, toggleSidebar }) {
   const { logout, user } = useAuth();
@@ -31,15 +32,17 @@ function Sidebar({ isOpen, toggleSidebar }) {
             {/* Profile card section (Header now) */}
             <div className="flex items-center justify-between mb-6 p-2">
               <div className="flex items-center cursor-pointer" onClick={toggleDropdown}>
-                {/* Placeholder Image */}
-                <img
+                {/* MUI Avatar */}
+                <Avatar
+                  alt={user?.username}
                   src={`http://localhost:5000${user?.avatar}`}
-                  alt="User"
-                  className="rounded-full mr-2 w-8"
+                  className="mr-3"
+                  sx={{width: 30, height:30}}
                 />
+
                 <div className="flex items-center">
                   <span className="font-semibold text-accent">{user ? user.username : 'User'}</span>
-                  <FaChevronDown className="ml-1 text-accent cursor-pointer" onClick={toggleDropdown} />
+                  <FaChevronDown className="ml-2 text-xs text-neutral-500 cursor-pointer" onClick={toggleDropdown} />
                 </div>
               </div>
               {/* Toggle sidebar button */}
@@ -92,10 +95,10 @@ function Sidebar({ isOpen, toggleSidebar }) {
           </div>
           <ul>
             <Link to={'/profile'} >
-            <li className="flex items-center p-2 hover:bg-stone-100 rounded">
-              <FaUserCircle className="mr-2 text-accent" />
-              <span className="text-accent">Profile</span>
-            </li>
+              <li className="flex items-center p-2 hover:bg-stone-100 rounded">
+                <FaUserCircle className="mr-2 text-accent" />
+                <span className="text-accent">Profile</span>
+              </li>
             </Link>
             <li className="flex items-center p-2 hover:bg-stone-100 rounded">
               <FaSignOutAlt className="mr-2 text-accent" />
