@@ -58,11 +58,11 @@ export const useTodos = () => {
     }
   };
 
-  // New Methods for Subtasks
-  const addSubtask = async (todoId, subtaskData) => {
+  // Optional: Fetch Todos by Project ID
+  const fetchTodosByProject = async (projectId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(`${API_URL}/${todoId}/subtasks`, subtaskData, {
+      const response = await axios.get(`${API_URL}/project/${projectId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -73,32 +73,5 @@ export const useTodos = () => {
     }
   };
 
-  const updateSubtask = async (todoId, subtaskId, subtaskData) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.put(`${API_URL}/${todoId}/subtasks/${subtaskId}`, subtaskData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      return response.data;
-    } catch (error) {
-      throw new Error(error.response.data.message);
-    }
-  };
-
-  const deleteSubtask = async (todoId, subtaskId) => {
-    try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`${API_URL}/${todoId}/subtasks/${subtaskId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    } catch (error) {
-      throw new Error(error.response.data.message);
-    }
-  };
-
-  return { fetchTodos, addTodo, updateTodo, deleteTodo, addSubtask, updateSubtask, deleteSubtask };
+  return { fetchTodos, addTodo, updateTodo, deleteTodo, fetchTodosByProject };
 };

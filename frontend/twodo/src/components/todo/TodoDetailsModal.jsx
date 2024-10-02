@@ -1,193 +1,164 @@
 import React, { useState, useEffect } from 'react';
-import { FaEdit, FaTrash, FaRegFileAlt, FaTag, FaCalendarAlt, FaPlus, FaMinus } from 'react-icons/fa';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
+import { Checkbox } from "@nextui-org/react";
+import { FaPen, FaTimes } from 'react-icons/fa';
+import { DatePicker } from "@nextui-org/react"; // Import NextUI's DatePicker
+import { useTodos } from '../../hooks/useTodos'; // Adjust the import path if needed
 
-function TodoDetailsModal({ todo, onClose, onDelete, onEdit }) {
-  const [editableTodo, setEditableTodo] = useState({});
-  const [newTag, setNewTag] = useState('');
+const TodoDetailsModal = ({ isOpen, onClose, todo, onUpdate }) => {
+    const { updateTodo } = useTodos(); // Use the updateTodo function from the hook
+    const [isEditingTitle, setIsEditingTitle] = useState(false);
+    const [isEditingDescription, setIsEditingDescription] = useState(false);
+    const [isEditingSubtask, setIsEditingSubtask] = useState({});
+    const [dueDate, setDueDate] = useState(new Date());
+    const [subtasks, setSubtasks] = useState([]);
+    const [newSubtask, setNewSubtask] = useState('');
 
-  useEffect(() => {
-    if (todo) {
-      setEditableTodo({
-        title: todo.title || '',
-        description: todo.description || '',
-        dueDate: todo.dueDate || '',
-        subTasks: todo.subTasks || [],
-        tags: todo.tags || [],
-      });
-    }
-  }, [todo]);
+    useEffect(() => {
+        if (isOpen && todo) {
+            setDueDate(new Date(todo.dueDate));
+            setSubtasks(todo.subtasks || []);
+        }
+    }, [isOpen, todo]);
 
-  const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    setEditableTodo((prev) => ({ ...prev, [name]: value }));
-  };
+    const handleToggleEditTitle = () => setIsEditingTitle(!isEditingTitle);
+    const handleToggleEditDescription = () => setIsEditingDescription(!isEditingDescription);
 
-  const handleSubTaskChange = (index, value) => {
-    const updatedSubTasks = [...editableTodo.subTasks];
-    updatedSubTasks[index].title = value;
-    setEditableTodo((prev) => ({ ...prev, subTasks: updatedSubTasks }));
-  };
+    const handleAddSubtask = () => {
+        if (newSubtask.trim()) {
+            setSubtasks([...subtasks, { id: Date.now(), text: newSubtask }]);
+            setNewSubtask('');
+        }
+    };
 
-  const handleAddSubTask = () => {
-    setEditableTodo((prev) => ({
-      ...prev,
-      subTasks: [...prev.subTasks, { title: '', completed: false }],
-    }));
-  };
+    const handleEditSubtask = (id) => {
+        setIsEditingSubtask((prev) => ({ ...prev, [id]: !prev[id] }));
+    };
 
-  const handleDeleteSubTask = (index) => {
-    const updatedSubTasks = editableTodo.subTasks.filter((_, i) => i !== index);
-    setEditableTodo((prev) => ({ ...prev, subTasks: updatedSubTasks }));
-  };
+    const handleDeleteSubtask = (id) => {
+        setSubtasks(subtasks.filter(subtask => subtask.id !== id));
+    };
 
-  const handleAddTag = () => {
-    if (newTag.trim() === '') return;
-    setEditableTodo((prev) => ({
-      ...prev,
-      tags: [...prev.tags, newTag.trim()],
-    }));
-    setNewTag('');
-  };
+    const handleUpdateTodo = async () => {
+        if (todo) {
+            await updateTodo(todo.id, { ...todo, dueDate, subtasks }); // Update todo using the hook
+            onUpdate({ ...todo, dueDate, subtasks }); // Update the state in the parent component
+        }
+        onClose();
+    };
 
-  const handleDeleteTag = (index) => {
-    const updatedTags = editableTodo.tags.filter((_, i) => i !== index);
-    setEditableTodo((prev) => ({ ...prev, tags: updatedTags }));
-  };
+    return (
+        <Dialog open={isOpen} onClose={onClose} fullWidth maxWidth="lg"> {/* Larger modal size */}
+            <DialogTitle>
+                <div className="flex justify-between items-center">
+                    <span className="text-xl font-semibold">Todo Details</span>
+                    <Button onClick={onClose} color="inherit">X</Button>
+                </div>
+            </DialogTitle>
+            <DialogContent className="flex p-6"> {/* Increased padding */}
+                {/* Content Section */}
+                <div className="flex flex-col space-y-4 w-2/3"> {/* Stack content vertically with space */}
+                    <div className="flex items-center">
+                        <Checkbox
+                            isSelected={todo?.completed || false}
+                            onChange={() => onUpdate({ ...todo, completed: !todo.completed })}
+                        />
+                        {isEditingTitle ? (
+                            <TextField
+                                defaultValue={todo?.title || ""}
+                                onBlur={handleToggleEditTitle}
+                                fullWidth
+                                variant="outlined"
+                                size="small"
+                            />
+                        ) : (
+                            <span className="font-bold cursor-pointer text-lg" onClick={handleToggleEditTitle}>
+                                {todo?.title || "No Title"}
+                                <FaPen className="ml-2" />
+                            </span>
+                        )}
+                    </div>
+                    {isEditingDescription ? (
+                        <TextField
+                            defaultValue={todo?.description || ""}
+                            onBlur={handleToggleEditDescription}
+                            multiline
+                            rows={4}
+                            fullWidth
+                            variant="outlined"
+                            size="small"
+                        />
+                    ) : (
+                        <div>
+                            <p className="text-gray-700">{todo?.description || "No Description"}</p>
+                            <FaPen className="cursor-pointer" onClick={handleToggleEditDescription} />
+                        </div>
+                    )}
 
-  const handleSave = () => {
-    onEdit(editableTodo);
-    onClose();
-  };
+                    {/* Subtasks */}
+                    <div className="mt-4">
+                        <h4 className="font-semibold text-lg">Subtasks:</h4>
+                        {subtasks.map((subtask) => (
+                            <div key={subtask.id} className="flex items-center">
+                                {isEditingSubtask[subtask.id] ? (
+                                    <TextField
+                                        defaultValue={subtask.text}
+                                        onBlur={() => handleEditSubtask(subtask.id)}
+                                        variant="outlined"
+                                        size="small"
+                                    />
+                                ) : (
+                                    <span className="mr-2">{subtask.text}</span>
+                                )}
+                                <FaPen className="cursor-pointer" onClick={() => handleEditSubtask(subtask.id)} />
+                                <FaTimes className="cursor-pointer text-red-500 ml-2" onClick={() => handleDeleteSubtask(subtask.id)} />
+                            </div>
+                        ))}
+                        <div className="mt-2 flex items-center">
+                            <input
+                                type="text"
+                                value={newSubtask}
+                                onChange={(e) => setNewSubtask(e.target.value)}
+                                placeholder="Add new subtask..."
+                                className="border rounded p-1 mr-2"
+                            />
+                            <button onClick={handleAddSubtask} className="bg-blue-500 text-white px-2 rounded">
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-  const handleSubTaskToggle = (index) => {
-    const updatedSubTasks = [...editableTodo.subTasks];
-    updatedSubTasks[index].completed = !updatedSubTasks[index].completed;
-    setEditableTodo((prev) => ({ ...prev, subTasks: updatedSubTasks }));
-  };
-
-  if (!todo) return null;
-
-  return (
-    <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
-      <div className="bg-white rounded-lg p-5 w-2/3 md:w-1/3 relative overflow-y-auto">
-        <button onClick={onClose} className="absolute top-2 right-2 text-gray-500">✖</button>
-
-        <h3 className="text-2xl font-bold mb-4">Edit Todo</h3>
-        
-        <div className="mb-4">
-          <label className="flex items-center mb-2">
-            <FaRegFileAlt className="mr-2 text-gray-600" />
-            <span className="text-lg font-semibold">Title</span>
-          </label>
-          <input
-            type="text"
-            name="title"
-            value={editableTodo.title}
-            onChange={handleEditChange}
-            className="border bg-transparent mb-2 w-full p-2 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="flex items-center mb-2">
-            <FaRegFileAlt className="mr-2 text-gray-600" />
-            <span className="text-lg font-semibold">Description</span>
-          </label>
-          <textarea
-            name="description"
-            value={editableTodo.description}
-            onChange={handleEditChange}
-            className="border bg-transparent mb-2 w-full p-2 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Description"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="flex items-center mb-2">
-            <FaCalendarAlt className="mr-2 text-gray-600" />
-            <span className="text-lg font-semibold">Due Date</span>
-          </label>
-          <input
-            type="date"
-            name="dueDate"
-            value={editableTodo.dueDate.split('T')[0]} 
-            onChange={handleEditChange}
-            className="border bg-transparent mb-2 w-full p-2 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <h3 className="text-lg font-semibold mt-4">Subtasks</h3>
-        {editableTodo.subTasks.map((subTask, index) => (
-          <div key={index} className="mb-2 flex items-center">
-            <input
-              type="text"
-              value={subTask.title}
-              onChange={(e) => handleSubTaskChange(index, e.target.value)}
-              className="border bg-transparent mb-2 w-full p-2 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-zinc-200"
-              placeholder="Subtask"
-            />
-            <button
-              onClick={() => handleDeleteSubTask(index)}
-              className="ml-2 text-red-500 hover:text-red-700"
-            >
-              <FaMinus />
-            </button>
-          </div>
-        ))}
-        <button
-          onClick={handleAddSubTask}
-          className="bg-teal-500 text-white py-1 px-2 rounded-xl shadow flex items-center mt-2 hover:bg-teal-600 transition"
-        >
-          <FaPlus className="mr-2" /> Add Subtask
-        </button>
-
-        <h3 className="text-lg font-semibold mt-4">Tags</h3>
-        <div className="flex flex-wrap mb-2">
-          {editableTodo.tags.map((tag, index) => (
-            <div key={index} className="flex items-center mr-2 mb-2 bg-opacity-75 bg-slate-200 text-neutral-800 font-bold rounded-lg px-4 py-2">
-              {tag}
-              <button
-                onClick={() => handleDeleteTag(index)}
-                className="ml-2 text-red-600 hover:text-red-700"
-              >
-                <FaMinus size={10} />
-              </button>
-            </div>
-          ))}
-        </div>
-        <div className="flex items-center mb-4">
-          <input
-            type="text"
-            value={newTag}
-            onChange={(e) => setNewTag(e.target.value)}
-            className="border bg-transparent mb-2 w-full p-2 rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-zinc-200"
-            placeholder="Add a new tag"
-          />
-          <button
-            onClick={handleAddTag}
-            className="bg-teal-500 text-white py-2 px-2 rounded-full shadow flex items-center ml-2 hover:bg-teal-600 transition"
-          >
-            <FaPlus />
-          </button>
-        </div>
-
-        <div className="flex justify-between mt-4">
-          <button
-            onClick={handleSave}
-            className="bg-black text-white py-2 px-4 rounded-full shadow hover:bg-neutral-800 transition"
-          >
-            Save
-          </button>
-          <button
-            onClick={onDelete}
-            className="bg-red-500 text-white py-2 px-4 rounded-full shadow hover:bg-red-600 transition"
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+                {/* Info Section */}
+                <div className="flex flex-col w-1/3 pl-6"> {/* Give space to the right */}
+                    <div className="mb-4">
+                        <h4 className="font-semibold text-lg">Due Date:</h4>
+                        <DatePicker
+                            selected={dueDate}
+                            onChange={(date) => setDueDate(date)}
+                            className="border rounded p-1 w-full"
+                        />
+                    </div>
+                    <div className="border-t border-gray-300 my-4" />
+                    <div>
+                        <h4 className="font-semibold text-lg">Tags:</h4>
+                        <div className="flex flex-wrap">
+                            {todo?.tags?.map((tag) => (
+                                <span key={tag} className="bg-gray-200 rounded px-2 py-1 mr-2 mb-2 flex items-center">
+                                    {tag}
+                                    <FaTimes className="cursor-pointer ml-1 text-red-500" onClick={() => {}} /> {/* Add delete functionality */}
+                                </span>
+                            )) || <span>No Tags</span>}
+                        </div>
+                    </div>
+                </div>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={handleUpdateTodo} color="primary" className="bg-blue-500 text-white">Save</Button>
+                <Button onClick={onClose} color="secondary" className="text-gray-700">Cancel</Button>
+            </DialogActions>
+        </Dialog>
+    );
+};
 
 export default TodoDetailsModal;

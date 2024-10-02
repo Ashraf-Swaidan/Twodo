@@ -32,7 +32,7 @@ const TodoItem = ({ todo, toggleCompletion, handleTaskSelection }) => {
 
   return (
     <li className="p-3 transition-all duration-200">
-      <div className="flex justify-between items-start">
+      <div className="flex items-start justify-between">
         <div className="flex items-start">
           {/* NextUI Full Rounded Checkbox */}
           <Checkbox
@@ -53,11 +53,11 @@ const TodoItem = ({ todo, toggleCompletion, handleTaskSelection }) => {
 
             {/* Description (aligned with title) */}
             {todo.description && (
-              <p className="text-sm text-gray-500 mb-1">{todo.description}</p>
+              <p className="mb-1 text-sm text-gray-500">{todo.description}</p>
             )}
 
             {/* Additional details: due date, subtasks, and tags */}
-            <div className="text-sm text-gray-500 flex items-center space-x-4">
+            <div className="flex items-center space-x-4 text-sm text-gray-500">
               {todo.dueDate && (
                 <span className="flex items-center">
                   <span className="mr-1">📅</span> 
@@ -66,7 +66,7 @@ const TodoItem = ({ todo, toggleCompletion, handleTaskSelection }) => {
               )}
               {todo.subTasks.length > 0 && (
                 <span className="flex items-center">
-                  <span className="text-accent mr-1"><LuListTree /></span> 
+                  <span className="mr-1 text-accent"><LuListTree /></span> 
                   <span>{todo.subTasks.length}</span>
                 </span>
               )}

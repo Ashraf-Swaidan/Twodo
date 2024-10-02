@@ -5,6 +5,7 @@ import cors from 'cors';
 import todoRoutes from './routes/todoRoutes.js';
 import listRoutes from './routes/listRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import projectRoutes from './routes/projectRoutes.js'
 import path from 'path';
 dotenv.config();
 
@@ -19,7 +20,7 @@ app.use('/api/todos', todoRoutes);
 app.use('/api/lists', listRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/uploads', express.static('uploads'));
-
+app.use('/api/projects', projectRoutes);
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)

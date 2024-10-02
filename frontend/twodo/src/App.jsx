@@ -3,6 +3,7 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import TodoPage from './pages/TodoPage';
+import ProjectPage from './pages/ProjectPage';
 import ProfilePage from './pages/ProfilePage';
 import MainLayout from './layout/MainLayout';
 import PrivateRoute from './components/PrivateRoute';
@@ -42,6 +43,17 @@ function App() {
                   <ProfilePage />
                 </PrivateRoute>
               } />
+
+              <Route 
+                path='/project/:projectId'
+                element={
+                  <PrivateRoute>
+                    <ProjectPage />
+                  </PrivateRoute>
+                }
+                />
+
+
           </Route>
         </Routes>
       </AuthProvider>

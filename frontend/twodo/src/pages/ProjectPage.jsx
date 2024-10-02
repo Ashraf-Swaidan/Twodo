@@ -13,9 +13,11 @@ import {
   DialogTitle,
   Button,
 } from '@mui/material';
+import { useParams } from 'react-router-dom';
 
-function TodoPage() {
-  const { fetchTodos, addTodo, updateTodo, deleteTodo } = useTodos();
+function ProjectPage() {
+  const {projectId} = useParams();
+  const { fetchTodos, addTodo, updateTodo, deleteTodo, fetchTodosByProject } = useTodos();
   const [todos, setTodos] = useState([]);
   const [filteredTodos, setFilteredTodos] = useState([]);
   const [error, setError] = useState('');
@@ -31,7 +33,7 @@ function TodoPage() {
     const getTodos = async () => {
       try {
         setLoading(true); 
-        const data = await fetchTodos();
+        const data = await fetchTodosByProject(projectId);
         setTodos(data);
         setFilteredTodos(data); 
       } catch (err) {
@@ -42,7 +44,7 @@ function TodoPage() {
     };
 
     getTodos();
-  }, []);
+  }, [projectId]);
 
   useEffect(() => {
     filterAndSortTodos();
@@ -281,4 +283,4 @@ function TodoPage() {
   );
 }
 
-export default TodoPage;
+export default ProjectPage;

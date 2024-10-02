@@ -10,6 +10,7 @@ const TodoSchema = new mongoose.Schema({
   subTasks: [{ title: String, completed: Boolean }],
   tags: [String],
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Add user reference
+  project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', default: null }, // Reference to the Project
 });
 
 const Todo = mongoose.model('Todo', TodoSchema);
