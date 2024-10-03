@@ -10,7 +10,7 @@ import { TiDelete } from "react-icons/ti";
 import { RiQuillPenLine } from "react-icons/ri";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { IoIosAddCircle } from "react-icons/io";
-
+import './Todo.css'
 const TodoItem = ({
   todo,
   toggleCompletion,
@@ -229,6 +229,7 @@ const TodoItem = ({
                 />
                 <div className="flex mt-1 mb-2 items-center">
                   <DatePicker
+                    variant="bordered"
                     selected={
                       editedTodo.dueDate ? new Date(editedTodo.dueDate) : null
                     }
@@ -241,7 +242,7 @@ const TodoItem = ({
                     {editedTodo.tags.map((tag, index) => (
                       <span
                         key={index}
-                        className="inline-flex items-center text-sm px-4 py-2 mr-2 space-x-2 text-accent bg-gray-200 rounded "
+                        className="inline-flex items-center text-sm px-4 py-2 mr-2 space-x-2 text-accent border-1 rounded-xl "
                       >
                         <span className="font-semibold">{tag}</span>
                         <button
@@ -323,7 +324,7 @@ const TodoItem = ({
                   <div className="space-x-2">
                     <button
                       onClick={handleCancel}
-                      className="bg-red-500 text-primary py-1 px-2 rounded hover:bg-red-400"
+                      className="bg-gray-500 text-primary py-1 px-2 rounded hover:bg-gray-400"
                     >
                       Cancel
                     </button>
@@ -426,16 +427,16 @@ const TodoItem = ({
           </div>
         </div>
 
-        <div className="flex items-center">
+        <div className="flex items-center action-buttons ">
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className="ml-2 text-blue-500"
+            className="ml-2 text-2xl text-accent"
           >
             <RiQuillPenLine />
           </button>
           <button
             onClick={() => handleDelete(todo)}
-            className="ml-2 text-red-500"
+            className="ml-2 text-2xl text-red-500"
           >
             <MdOutlineDeleteOutline />
           </button>

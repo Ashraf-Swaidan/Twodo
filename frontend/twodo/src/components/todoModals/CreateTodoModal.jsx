@@ -124,6 +124,7 @@ const CreateTodoModal = ({ isOpen, onClose, onCreate }) => {
 
           <div className="flex items-center ">
             <DatePicker
+              variant="bordered"
               className="max-w-[204px] mr-2"
               onChange={setDueDate}
               value={dueDate}
@@ -133,7 +134,7 @@ const CreateTodoModal = ({ isOpen, onClose, onCreate }) => {
               id="project-select"
               value={selectedProject}
               onChange={(e) => setSelectedProject(e.target.value)}
-              className="px-2 py-1 mr-2 bg-gray-100 rounded "
+              className="px-2 py-1 mr-2 border-1 rounded "
             >
               <option value="">No Project</option>
               {projects &&
@@ -146,7 +147,7 @@ const CreateTodoModal = ({ isOpen, onClose, onCreate }) => {
 
             <button
               type="button" // Ensure this is a button, not a submit
-              className="px-2 py-1 rounded bg-secondary text-accent"
+              className="px-2 py-1 rounded border-1 text-accent"
               onClick={() => setIsProjectModalOpen(true)} // Only opens the project modal
             >
               + Create new project

@@ -1,0 +1,16 @@
+.action-buttons {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+  }
+  
+  li:hover .action-buttons {
+    opacity: 1;
+  }
+  
+  .action-buttons {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    position: relative; /* or absolute, depending on your layout */
+    right: 0; /* Ensure it's aligned to the right */
+  }
+  
