@@ -71,17 +71,44 @@ router.get('/:id', verifyToken, async (req, res) => {
 // Update Todo
 router.put('/:id', verifyToken, async (req, res) => {
   try {
-    const todo = await Todo.findOneAndUpdate(
+    // First, find the existing Todo to check its current project
+    const existingTodo = await Todo.findOne({ _id: req.params.id, user: req.userId }); // Ensure the user owns the todo
+    if (!existingTodo) return res.status(404).json({ message: 'Todo not found' });
+
+    // Get the current project ID from the existing Todo
+    const currentProject = existingTodo.project;
+
+    // Update the Todo with the new data
+    const updatedTodo = await Todo.findOneAndUpdate(
       { _id: req.params.id, user: req.userId }, // Ensure the user owns the todo
       req.body,
       { new: true }
     );
-    if (!todo) return res.status(404).json({ message: 'Todo not found' });
-    res.json(todo);
+
+    if (!updatedTodo) return res.status(404).json({ message: 'Todo not found' });
+
+    // Check if the project has changed
+    if (req.body.project) {
+      // If a new project is provided, add this Todo to the new project
+      await Project.findByIdAndUpdate(req.body.project, { $addToSet: { todos: updatedTodo._id } });
+
+      // If the current project is different, remove the Todo from the old project
+      if (currentProject && currentProject.toString() !== req.body.project) {
+        await Project.findByIdAndUpdate(currentProject, { $pull: { todos: updatedTodo._id } });
+      }
+    } else {
+      // If no project is provided, just remove the Todo from the current project if it exists
+      if (currentProject) {
+        await Project.findByIdAndUpdate(currentProject, { $pull: { todos: updatedTodo._id } });
+      }
+    }
+
+    res.json(updatedTodo);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 });
+
 
 // Delete Todo
 router.delete('/:id', verifyToken, async (req, res) => {
