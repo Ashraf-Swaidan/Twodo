@@ -40,13 +40,28 @@ function MainLayout() {
       {/* Sidebar */}
       <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
 
-      {/* Main Content */}
+      {/* Main Content with Overlay */}
       <div
-        className={`flex-1 p-3 overflow-auto h-screen transition-all duration-300 ${
-          isSidebarOpen ? 'ml-72' : 'ml-24'
+        className={`relative flex-1  overflow-auto h-screen transition-all duration-300 ${
+          isSmallScreen
+            ? 'ml-8' // Small margin for small screens
+            : isSidebarOpen
+            ? 'ml-72' // Full margin when sidebar is open
+            : 'ml-24' // Smaller margin when sidebar is closed
         }`}
       >
-        <Outlet />
+        {/* Dark overlay when sidebar is open on small screens */}
+        {isSmallScreen && isSidebarOpen && (
+          <div
+            onClick={toggleSidebar} // Close the sidebar if the overlay is clicked
+            className="fixed inset-0 bg-black opacity-50 z-10"
+          ></div>
+        )}
+
+        {/* Outlet content */}
+        <div className={`relative z-200 ${isSmallScreen && isSidebarOpen ? 'pointer-events-none' : ''}`}>
+          <Outlet />
+        </div>
       </div>
     </div>
   );

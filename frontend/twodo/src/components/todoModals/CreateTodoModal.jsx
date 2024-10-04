@@ -122,7 +122,7 @@ const CreateTodoModal = ({ isOpen, onClose, onCreate }) => {
             }}
           />
 
-          <div className="flex items-center ">
+          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 ">
             <DatePicker
               variant="bordered"
               className="max-w-[204px] mr-2"

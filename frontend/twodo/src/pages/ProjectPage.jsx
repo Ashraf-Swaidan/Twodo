@@ -5,7 +5,7 @@ import { FaPlus, FaSearch } from "react-icons/fa";
 import CreateTodoModal from "../components/todoModals/CreateTodoModal";
 import TodoItem from "../components/todo/TodoItem";
 import { useProjectsContext } from "../hooks/useProjects";
-import { Checkbox, Skeleton, DatePicker } from "@nextui-org/react";
+import { Checkbox, Skeleton, DatePicker, CheckboxGroup } from "@nextui-org/react";
 import { Dialog, DialogActions, DialogContent } from "@mui/material";
 
 function ProjectPage() {
@@ -21,6 +21,10 @@ function ProjectPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [showCompleted, setShowCompleted] = useState(true);
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [availableTags, setAvailableTags] = useState([]);
+  const [isTagDropdownVisible, setIsTagDropdownVisible] = useState(false);
+
   const [isEditingTitle, setIsEditingTitle] = useState(false); // State for editing title
   const [isEditingDescription, setIsEditingDescription] = useState(false); // State for editing description
   const [newTitle, setNewTitle] = useState(""); // State for new title
@@ -49,7 +53,14 @@ function ProjectPage() {
 
   useEffect(() => {
     filterAndSortTodos();
-  }, [todos, searchTerm, showCompleted, projectId]);
+  }, [todos, searchTerm, showCompleted, projectId, selectedTags]);
+
+  useEffect(() => {
+    if (todos.length) {
+      const tags = getUniqueTags(todos);
+      setAvailableTags(tags);
+    }
+  }, [todos, projectId]);
 
   const filterAndSortTodos = () => {
     const filtered = todos.filter((todo) => {
@@ -57,8 +68,17 @@ function ProjectPage() {
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
       const matchesCompletion = showCompleted || !todo.completed;
-      return matchesSearch && matchesCompletion;
+
+      // Check if any selected tag is present in the todo's tags
+      const matchesTags =
+        selectedTags.length === 0 ||
+        selectedTags.every((tag) =>
+          (todo.tags || []).map((t) => t.toLowerCase()).includes(tag)
+        );
+
+      return matchesSearch && matchesCompletion && matchesTags;
     });
+
     setFilteredTodos(filtered);
   };
 
@@ -215,6 +235,13 @@ function ProjectPage() {
     }
   };
 
+  const getUniqueTags = (todos) => {
+    const allTags = todos.flatMap((todo) => todo.tags || []);
+    const uniqueTags = [...new Set(allTags.map((tag) => tag.toLowerCase()))];
+    return uniqueTags;
+  };
+
+
   const groupedTodos = groupTodosByDate(filteredTodos);
   const progress = calculateProgress();
 
@@ -274,7 +301,8 @@ function ProjectPage() {
       )}
 
       {project && (
-        <div className="flex items-center space-x-2 mb-4">
+        <div className="flex flex-wrap items-center space-x-2 mb-4">
+
           <p className="text-sm text-gray-600">
             {project?.dueDate ? (
               <>
@@ -296,9 +324,9 @@ function ProjectPage() {
             </button>
           ) : (
             // Render DatePicker and action buttons when in rescheduling mode
-            <>
+            <div className="flex space-x-2 space-y-2 sm:space-y-0 flex-col sm:flex-row">
               <DatePicker
-                className="w-1/4"
+                
                 value={dueDate}
                 onChange={handleDueDateChange} 
                 variant="bordered"// Handle date change
@@ -315,7 +343,7 @@ function ProjectPage() {
               >
                 Cancel
               </button>
-            </>
+            </div>
           )}
         </div>
       )}
@@ -331,30 +359,59 @@ function ProjectPage() {
       </div>
 
       <div className="mb-4">
-        <div className="flex items-center mb-6">
-          <div className="flex items-center">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={handleSearchChange}
-              placeholder="Search todo..."
-              className="p-2 px-4 mr-2 border rounded focus:ring-1 focus:outline-none focus:ring-zinc-400"
-            />
-            <FaSearch />
-          </div>
-
-          <label className="flex items-center ml-4">
-            <Checkbox
-              radius="full"
-              isSelected={showCompleted}
-              onChange={toggleShowCompleted}
-              color="default"
-              size="lg"
-              css={{ margin: 0 }}
-            />
-            Show Completed Todos
-          </label>
+      <div className="flex flex-wrap items-center mb-6 sm:w-auto space-y-3 md:space-y-0 ">
+        <div className="flex items-center w-full sm:w-auto">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            placeholder="Search todo..."
+            className="p-2 px-4 mr-2 w-full sm:w-auto border rounded focus:ring-1 focus:outline-none focus:ring-zinc-400"
+          />
+          <FaSearch />
         </div>
+
+        <label className="flex items-center ml-2 ">
+          <Checkbox
+            radius="full"
+            isSelected={showCompleted}
+            onChange={toggleShowCompleted}
+            color="default"
+            size="lg"
+            css={{ margin: 0 }}
+          />
+          <span className="">Show Completed</span>
+        </label>
+
+        <div className="relative w-full sm:w-auto">
+          <button
+            onClick={() => setIsTagDropdownVisible((prev) => !prev)}
+            className="px-3 py-1 ml-2 text-accent border-1 rounded"
+          >
+            {isTagDropdownVisible ? "Hide Tags" : "Select Tags"}
+          </button>
+
+          {isTagDropdownVisible && (
+            <div
+              className="absolute z-10 p-4 mt-2 bg-white border border-gray-300 rounded shadow-lg w-full sm:w-64"
+              style={{ minWidth: "200px" }} // Optional: define the width of the dropdown
+            >
+              <CheckboxGroup
+                label="Filter by tags"
+                value={selectedTags}
+                onChange={setSelectedTags}
+                orientation="horizontal"
+              >
+                {availableTags.map((tag) => (
+                  <Checkbox color="danger" key={tag} value={tag}>
+                    {tag}
+                  </Checkbox>
+                ))}
+              </CheckboxGroup>
+            </div>
+          )}
+        </div>
+      </div>
         {error && <p className="text-red-500">{error}</p>}
 
         <div className="flex">

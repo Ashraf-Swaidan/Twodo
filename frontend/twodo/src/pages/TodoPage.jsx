@@ -3,13 +3,13 @@ import { useTodos } from "../hooks/useTodos";
 import { FaPlus, FaSearch } from "react-icons/fa";
 import CreateTodoModal from "../components/todoModals/CreateTodoModal";
 import TodoItem from "../components/todo/TodoItem";
-import { Checkbox } from "@nextui-org/react";
-import { Skeleton } from "@nextui-org/react";
+import { Checkbox, CheckboxGroup, Skeleton } from "@nextui-org/react";
 import { Dialog, DialogActions, DialogContent } from "@mui/material";
 
 function TodoPage() {
   const { fetchTodos, addTodo, updateTodo, deleteTodo } = useTodos();
   const [todos, setTodos] = useState([]);
+  console.log(todos);
   const [filteredTodos, setFilteredTodos] = useState([]);
   const [error, setError] = useState("");
   const [selectedTodo, setSelectedTodo] = useState(null);
@@ -18,7 +18,10 @@ function TodoPage() {
   const [searchTerm, setSearchTerm] = useState("");
   console.log(todos);
   const [loading, setLoading] = useState(true);
-  const [showCompleted, setShowCompleted] = useState(true); // State for showing completed todos
+  const [showCompleted, setShowCompleted] = useState(true);
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [availableTags, setAvailableTags] = useState([]);
+  const [isTagDropdownVisible, setIsTagDropdownVisible] = useState(false);
 
   useEffect(() => {
     const getTodos = async () => {
@@ -39,7 +42,14 @@ function TodoPage() {
 
   useEffect(() => {
     filterAndSortTodos();
-  }, [todos, searchTerm, showCompleted]); // Add showCompleted to the dependencies
+  }, [todos, searchTerm, showCompleted, selectedTags]); // Add showCompleted to the dependencies
+
+  useEffect(() => {
+    if (todos.length) {
+      const tags = getUniqueTags(todos);
+      setAvailableTags(tags);
+    }
+  }, [todos]);
 
   const filterAndSortTodos = () => {
     const filtered = todos.filter((todo) => {
@@ -47,8 +57,17 @@ function TodoPage() {
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
       const matchesCompletion = showCompleted || !todo.completed;
-      return matchesSearch && matchesCompletion;
+
+      // Check if any selected tag is present in the todo's tags
+      const matchesTags =
+        selectedTags.length === 0 ||
+        selectedTags.every((tag) =>
+          (todo.tags || []).map((t) => t.toLowerCase()).includes(tag)
+        );
+
+      return matchesSearch && matchesCompletion && matchesTags;
     });
+
     setFilteredTodos(filtered);
   };
 
@@ -145,24 +164,30 @@ function TodoPage() {
     return groupedTodos;
   };
 
+  const getUniqueTags = (todos) => {
+    const allTags = todos.flatMap((todo) => todo.tags || []);
+    const uniqueTags = [...new Set(allTags.map((tag) => tag.toLowerCase()))];
+    return uniqueTags;
+  };
+
   const groupedTodos = groupTodosByDate(filteredTodos);
 
   return (
-    <div className='p-6 lg:w-2/3 md:w-full'>
+    <div className="p-6 w-full lg:w-2/3 md:w-full ">
       <h1 className="mb-3 text-3xl font-bold">All your Todos</h1>
-      <div className="flex items-center mb-6">
-        <div className="flex items-center">
+      <div className="flex flex-wrap items-center mb-6 sm:w-auto space-y-2 md:space-y-0 ">
+        <div className="flex items-center w-full sm:w-auto">
           <input
             type="text"
             value={searchTerm}
             onChange={handleSearchChange}
             placeholder="Search todo..."
-            className="p-2 px-4 mr-2 border rounded focus:ring-1 focus:outline-none focus:ring-zinc-400"
+            className="p-2 px-4 mr-2 w-full sm:w-auto border rounded focus:ring-1 focus:outline-none focus:ring-zinc-400"
           />
           <FaSearch />
         </div>
 
-        <label className="flex items-center ml-4">
+        <label className="flex items-center ml-2 ">
           <Checkbox
             radius="full"
             isSelected={showCompleted}
@@ -171,62 +196,88 @@ function TodoPage() {
             size="lg"
             css={{ margin: 0 }}
           />
-          Show Completed
+          <span className="">Show Completed</span>
         </label>
+
+        <div className="relative w-full sm:w-auto">
+          <button
+            onClick={() => setIsTagDropdownVisible((prev) => !prev)}
+            className="px-3 py-1 ml-2 text-accent border-1 rounded"
+          >
+            {isTagDropdownVisible ? "Hide Tags" : "Select Tags"}
+          </button>
+
+          {isTagDropdownVisible && (
+            <div
+              className="absolute z-10 p-4 mt-2 bg-white border border-gray-300 rounded shadow-lg w-full sm:w-64"
+              style={{ minWidth: "200px" }} // Optional: define the width of the dropdown
+            >
+              <CheckboxGroup
+                label="Filter by tags"
+                value={selectedTags}
+                onChange={setSelectedTags}
+                orientation="horizontal"
+              >
+                {availableTags.map((tag) => (
+                  <Checkbox color="danger" key={tag} value={tag}>
+                    {tag}
+                  </Checkbox>
+                ))}
+              </CheckboxGroup>
+            </div>
+          )}
+        </div>
       </div>
       {error && <p className="text-red-500">{error}</p>}
 
-      <div className='flex'>
-        <ul className='min-w-full divide-y'>
-          <li
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-start p-3 px-5 border rounded cursor-pointer hover:bg-slate-50 border-neutral-200"
-          >
-            <span>
-              <FaPlus size={15} className="mr-2 " />
-            </span>
-            <span className="font-semibold">Add new task</span>
+      <div className="flex">
+  <ul className="min-w-full divide-y">
+    <li
+      onClick={() => setIsModalOpen(true)}
+      className="flex items-center justify-start p-3 px-5 border rounded cursor-pointer hover:bg-slate-50 border-neutral-200"
+    >
+      <span>
+        <FaPlus size={15} className="mr-2 " />
+      </span>
+      <span className="font-semibold">Add new task</span>
+    </li>
+
+    {loading
+      ? Array.from({ length: 3 }).map((_, index) => (
+          <li key={index} className="p-3 mb-2">
+            <div className="max-w-[300px] w-full flex items-center gap-3">
+              <Skeleton className="flex rounded-full mb-7 w-7 h-7" />
+              <div className="flex flex-col w-full gap-2">
+                <Skeleton className="w-2/5 h-4 rounded-lg" />
+                <Skeleton className="w-4/5 h-3 rounded-lg" />
+                <Skeleton className="w-3/5 h-2 rounded-lg" />
+              </div>
+            </div>
           </li>
+        ))
+      : Object.entries(groupedTodos).map(
+          ([dateLabel, todos]) =>
+            todos.length > 0 && (
+              <div key={dateLabel}>
+                <h2 className="mt-4 text-lg font-bold">{dateLabel}</h2>
+                {todos.map((todo) => (
+                  <React.Fragment key={todo._id}>
+                    <TodoItem
+                      todo={todo}
+                      toggleCompletion={toggleCompletion}
+                      handleTaskSelection={handleTaskSelection}
+                      onDelete={openWarningModal}
+                      setTodos={setTodos}
+                    />
+                    <hr />
+                  </React.Fragment>
+                ))}
+              </div>
+            )
+        )}
+  </ul>
+</div>
 
-          
-          {loading
-  ? Array.from({ length: 3 }).map((_, index) => (
-      <li key={index} className="p-3 mb-2">  {/* <-- Add unique key here */}
-        <div className="max-w-[300px] w-full flex items-center gap-3">
-          <div>
-            <Skeleton className="flex rounded-full mb-7 w-7 h-7" />
-          </div>
-          <div className="flex flex-col w-full gap-2">
-            <Skeleton className="w-2/5 h-4 rounded-lg" />
-            <Skeleton className="w-4/5 h-3 rounded-lg" />
-            <Skeleton className="w-3/5 h-2 rounded-lg" />
-          </div>
-        </div>
-      </li>
-    ))
-  : Object.entries(groupedTodos).map(
-      ([dateLabel, todos]) =>
-        todos.length > 0 && (
-          <div key={dateLabel}>  {/* Key for the grouped section */}
-            <h2 className="mt-4 text-lg font-bold">{dateLabel}</h2>
-            {todos.map((todo) => (
-              <React.Fragment key={todo._id}>  {/* Key for the fragment */}
-                <TodoItem
-                  todo={todo}
-                  toggleCompletion={toggleCompletion}
-                  handleTaskSelection={handleTaskSelection}
-                  onDelete={openWarningModal}
-                  setTodos={setTodos}
-                />
-                <hr />
-              </React.Fragment>
-            ))}
-          </div>
-        )
-    )}
-
-        </ul>
-      </div>
 
       <CreateTodoModal
         isOpen={isModalOpen}

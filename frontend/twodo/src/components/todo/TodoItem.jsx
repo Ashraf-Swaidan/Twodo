@@ -10,7 +10,7 @@ import { TiDelete } from "react-icons/ti";
 import { RiQuillPenLine } from "react-icons/ri";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { IoIosAddCircle } from "react-icons/io";
-import './Todo.css'
+import "./Todo.css";
 const TodoItem = ({
   todo,
   toggleCompletion,
@@ -189,11 +189,13 @@ const TodoItem = ({
 
   return (
     <li
-      className={`p-3 ${isEditing && "border-1 rounded-xl"} cursor-pointer`}
-      onClick={() => setSubtasksVisible(!isSubtasksVisible)} // Toggle subtasks visibility on click
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex w-full items-start">
+    className={`p-3 ${isEditing && "border-1 rounded-xl"} cursor-pointer`}
+    onClick={() => setSubtasksVisible(!isSubtasksVisible)} // Toggle subtasks visibility on click
+  >
+    <div className="flex items-start justify-between">
+      <div className="flex w-full items-start">
+        {/* Render Checkbox only when not in editing mode */}
+        {!isEditing && (
           <Checkbox
             radius="full"
             isSelected={todo.completed}
@@ -202,32 +204,34 @@ const TodoItem = ({
             size="lg"
             css={{ margin: 0 }}
           />
-          <div className="ml-4 w-full">
-            {isEditing ? (
-              <>
-                <span
-                  className={`font-semibold text-lg ${
-                    todo.completed ? "line-through text-accent" : ""
-                  }`}
-                >
-                  <input
-                    type="text"
-                    name="title"
-                    value={editedTodo.title}
-                    onChange={handleEditChange}
-                    placeholder="Title; type @tag to add tags"
-                    className="border-0 outline-none w-full"
-                  />
-                </span>
-                <textarea
-                  name="description"
-                  value={editedTodo.description}
+        )}
+        <div className="ml-4 w-full">
+          {isEditing ? (
+            <>
+              <span
+                className={`flex font-semibold ${
+                  todo.completed ? "line-through text-accent" : ""
+                }`}
+              >
+                <input
+                  type="text"
+                  name="title"
+                  value={editedTodo.title}
                   onChange={handleEditChange}
-                  className="w-full border-0 outline-none"
-                  rows="1"
-                  placeholder="Description"
+                  placeholder="Title; type @tag to add tags"
+                  className=" md:text-lg text-xs border-0 outline-none w-full text-ellipsis"
                 />
-                <div className="flex mt-1 mb-2 items-center">
+              </span>
+              <input
+                name="description"
+                value={editedTodo.description}
+                onChange={handleEditChange}
+                className="w-full text-ellipsis text-xs md:text-lg border-0 outline-none"
+                rows="1"
+                placeholder="Description"
+              />
+              <div className="flex sm:items-center sm:flex-row flex-col space-y-2 sm:space-y-0 mt-1 mb-2 ">
+                <div className="w-40 mr-2">
                   <DatePicker
                     variant="bordered"
                     selected={
@@ -236,213 +240,216 @@ const TodoItem = ({
                     onChange={(date) =>
                       setEditedTodo((prev) => ({ ...prev, dueDate: date }))
                     }
-                    className="w-40 p-0 mr-2"
+                    size="sm"
                   />
-                  <div>
-                    {editedTodo.tags.map((tag, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center text-sm px-4 py-2 mr-2 space-x-2 text-accent border-1 rounded-xl "
-                      >
-                        <span className="font-semibold">{tag}</span>
-                        <button
-                          type="button"
-                          className="text-lg ml-1 hover:text-black "
-                          onClick={() => handleRemoveTag(tag)}
-                        >
-                          <TiDelete />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
                 </div>
-                <hr className="mt-3 mb-2" />
-                <span>Subtasks:</span>
-                <div className=" ml-8 mb-3 mt-1">
-                  {editedSubtasks.map((subtask, index) => (
+  
+                <div >
+                  {editedTodo.tags.map((tag, index) => (
                     <div
-                      key={subtask._id}
-                      className="flex items-center justify-normal"
+                      key={index}
+                      className="inline-flex items-center md:text-md text-xs px-2 py-1 mr-2 space-x-2 text-accent border-1 rounded "
                     >
-                      -
-                      <input
-                        type="text"
-                        value={subtask.title}
-                        onChange={(e) =>
-                          handleSubtaskEditChange(index, e.target.value)
-                        }
-                        className={`outline-none border-0 w-full ml-2 ${
-                          subtask.completed ? "line-through text-gray-500" : ""
-                        }`}
-                      />
+                      <span className="font-semibold">{tag}</span>
                       <button
-                        onClick={() => handleSubtaskDelete(subtask._id)}
-                        className="ml-2 text-red-500"
+                        type="button"
+                        className="md:text-lg sm:text-sm ml-1 hover:text-black "
+                        onClick={() => handleRemoveTag(tag)}
                       >
                         <TiDelete />
                       </button>
                     </div>
                   ))}
-
-                  <div className="flex items-center mt-2">
+                </div>
+              </div>
+              <hr className="mt-3 mb-2" />
+              <span className="text-sm sm:text-lg">Subtasks:</span>
+              <div className="ml-8 mb-3 mt-1">
+                {editedSubtasks.map((subtask, index) => (
+                  <div
+                    key={subtask._id}
+                    className="flex items-center justify-normal"
+                  >
+                    -
                     <input
                       type="text"
-                      placeholder="Add New Subtask"
-                      value={newSubtask}
-                      onChange={(e) => setNewSubtask(e.target.value)}
-                      className="text-sm border-0 outline-none rounded p-1 "
+                      value={subtask.title}
+                      onChange={(e) =>
+                        handleSubtaskEditChange(index, e.target.value)
+                      }
+                      className={`text-xs sm:text-lg outline-none border-0  ml-2 ${
+                        subtask.completed ? "line-through text-gray-500" : ""
+                      }`}
                     />
-
                     <button
-                      className="text-lg hover:text-accent"
-                      onClick={handleAddSubtask}
+                      onClick={() => handleSubtaskDelete(subtask._id)}
+                      className="ml-2 text-red-500"
                     >
-                      <IoIosAddCircle />
+                      <TiDelete />
                     </button>
                   </div>
-                </div>
-                <hr />
-
-                <div className="flex justify-between items-center  mt-2">
-                  <select
-                    value={selectedProject}
-                    onChange={(e) => setSelectedProject(e.target.value)}
-                    className="border rounded p-1"
+                ))}
+  
+                <div className="flex items-center mt-2">
+                  <input
+                    type="text"
+                    placeholder="Add New Subtask"
+                    value={newSubtask}
+                    onChange={(e) => setNewSubtask(e.target.value)}
+                    className="text-xs sm:text-lg border-0 outline-none rounded p-1 "
+                  />
+  
+                  <button
+                    className="text-xs sm:text-lg hover:text-accent"
+                    onClick={handleAddSubtask}
                   >
-                    <option value="" disabled={!selectedProject}>
-                      {selectedProject ? "Change project" : "Select a project"}
-                    </option>
-                    <option value="">No Project</option>{" "}
-                    {/* Option for no project */}
-                    {projects.map((proj) => (
-                      <option key={proj._id} value={proj._id}>
-                        {proj.name}
-                      </option>
-                    ))}
-                  </select>
-
-                  <div className="space-x-2">
-                    <button
-                      onClick={handleCancel}
-                      className="bg-gray-500 text-primary py-1 px-2 rounded hover:bg-gray-400"
-                    >
-                      Cancel
-                    </button>
-
-                    <button
-                      onClick={handleSave}
-                      className="text-accent bg-third px-3 py-1 rounded hover:bg-gray-300"
-                    >
-                      Save
-                    </button>
-                  </div>
+                    <IoIosAddCircle />
+                  </button>
                 </div>
-              </>
-            ) : (
-              <>
-                <span
-                  className={`font-semibold text-lg ${
-                    todo.completed ? "line-through text-accent" : ""
-                  }`}
+              </div>
+              <hr />
+  
+              <div className="flex justify-between items-center mt-2 text-xs md:text-lg">
+                <select
+                  value={selectedProject}
+                  onChange={(e) => setSelectedProject(e.target.value)}
+                  className="border rounded p-1"
                 >
-                  {todo.title}
-                </span>
-                {todo.description && (
-                  <p className="mb-1 text-sm text-gray-500">
-                    {todo.description}
-                  </p>
-                )}
-                <div className="flex items-center justify-normal space-x-4 text-sm text-gray-500">
-                  <div className="flex space-x-3">
-                    {todo.dueDate && (
-                      <span className="flex items-center">
-                        <span className="mr-1">📅</span>
-                        {getDueDateLabel(todo.dueDate)}
-                      </span>
-                    )}
-                    {todo.subTasks.length > 0 && (
-                      <span className="flex items-center">
-                        <span className="mr-1 text-accent">
-                          <LuListTree />
-                        </span>
-                        <span>
-                          {
-                            todo.subTasks.filter((subtask) => subtask.completed)
-                              .length
-                          }{" "}
-                          / {todo.subTasks.length}
-                        </span>
-                      </span>
-                    )}
-
-                    {todo.tags.length > 0 && (
-                      <span className="flex items-center">
-                        {todo.tags.map((tag, index) => (
-                          <span key={index} className="flex items-center mr-2">
-                            <span className="mr-1">🏷️</span>
-                            <span>{tag}</span>
-                          </span>
-                        ))}
-                      </span>
-                    )}
-                    {project && (
-                      <span className="flex items-center">
-                        <span className="mr-1 text-accent">
-                          <AiOutlineFundProjectionScreen />
-                        </span>
-                        <Link to={`/project/${todo.project}`}>
-                          <span>{project.name}</span>
-                        </Link>
-                      </span>
-                    )}
-                  </div>
+                  <option value="" disabled={!selectedProject}>
+                    {selectedProject ? "Change project" : "Select a project"}
+                  </option>
+                  <option value="">No Project</option>
+                  {projects.map((proj) => (
+                    <option className="text-xs md:text-lg" key={proj._id} value={proj._id}>
+                      {proj.name}
+                    </option>
+                  ))}
+                </select>
+  
+                <div className="space-x-2">
+                  <button
+                    onClick={handleCancel}
+                    className="text-xs md:text-lg bg-gray-500 text-primary py-1 px-2 rounded hover:bg-gray-400"
+                  >
+                    Cancel
+                  </button>
+  
+                  <button
+                    onClick={handleSave}
+                    className="text-accent text-xs md:text-lg bg-third px-3 py-1 rounded hover:bg-gray-300"
+                  >
+                    Save
+                  </button>
                 </div>
-                {isSubtasksVisible && (
-                  <div className="ml-8 mt-2">
-                    {todo.subTasks.map((subtask) => (
-                      <div key={subtask._id} className="flex items-center">
-                        <Checkbox
-                          radius={"full"}
-                          isSelected={subtask.completed}
-                          onChange={() => handleSubtaskToggle(subtask._id)}
-                          color="danger"
-                          size="sm"
-                          css={{ margin: 0 }}
-                        />
-                        <span
-                          className={`ml-2 ${
-                            subtask.completed
-                              ? "line-through text-gray-500"
-                              : ""
-                          }`}
-                        >
-                          {subtask.title}
+              </div>
+            </>
+          ) : (
+            <>
+              <span
+                className={`font-semibold md:text-lg sm:text-sm ${
+                  todo.completed ? "line-through text-accent" : ""
+                }`}
+              >
+                {todo.title}
+              </span>
+              {todo.description && (
+                <p className="mb-1 md:text-sm sm:text-xs text-gray-500">
+                  {todo.description}
+                </p>
+              )}
+              <div className="flex items-center justify-normal space-x-4 md:text-sm sm:text-xs text-gray-500">
+                <div className="lg:flex lg:space-x-3 sm:space-y-1">
+                  {todo.dueDate && (
+                    <span className="flex items-center">
+                      <span className="mr-1">📅</span>
+                      {getDueDateLabel(todo.dueDate)}
+                    </span>
+                  )}
+                  {todo.subTasks.length > 0 && (
+                    <span className="flex items-center">
+                      <span className="mr-1 text-accent">
+                        <LuListTree />
+                      </span>
+                      <span>
+                        {
+                          todo.subTasks.filter((subtask) => subtask.completed)
+                            .length
+                        }{" "}
+                        / {todo.subTasks.length}
+                      </span>
+                    </span>
+                  )}
+  
+                  {todo.tags.length > 0 && (
+                    <span className="flex items-center">
+                      {todo.tags.map((tag, index) => (
+                        <span key={index} className="flex items-center mr-2">
+                          <span className="mr-1">🏷️</span>
+                          <span>{tag}</span>
                         </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+                      ))}
+                    </span>
+                  )}
+                  {project && (
+                    <span className="flex items-center">
+                      <span className="mr-1 text-accent">
+                        <AiOutlineFundProjectionScreen />
+                      </span>
+                      <Link to={`/project/${todo.project}`}>
+                        <span>{project.name}</span>
+                      </Link>
+                    </span>
+                  )}
+                </div>
+              </div>
+              {isSubtasksVisible && (
+                <div className="ml-8 mt-2">
+                  {todo.subTasks.map((subtask) => (
+                    <div key={subtask._id} className="flex items-center">
+                      <Checkbox
+                        radius={"full"}
+                        isSelected={subtask.completed}
+                        onChange={() => handleSubtaskToggle(subtask._id)}
+                        color="danger"
+                        size="sm"
+                        css={{ margin: 0 }}
+                      />
+                      <span
+                        className={`ml-2 ${
+                          subtask.completed ? "line-through text-gray-500" : ""
+                        }`}
+                      >
+                        {subtask.title}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
-
+      </div>
+  
+      {/* Render Action Buttons only when not in editing mode */}
+      {!isEditing && (
         <div className="flex items-center action-buttons ">
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className="ml-2 text-2xl text-accent"
+            className="ml-2 md:text-2xl sm:text-sm text-accent"
           >
             <RiQuillPenLine />
           </button>
           <button
             onClick={() => handleDelete(todo)}
-            className="ml-2 text-2xl text-red-500"
+            className="ml-2 md:text-2xl sm:text-sm text-red-500"
           >
             <MdOutlineDeleteOutline />
           </button>
         </div>
-      </div>
-    </li>
+      )}
+    </div>
+  </li>
+  
   );
 };
 
