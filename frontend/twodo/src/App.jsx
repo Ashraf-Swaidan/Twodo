@@ -12,7 +12,7 @@ import { AuthProvider } from './context/AuthContext';
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
+
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
@@ -56,7 +56,6 @@ function App() {
 
           </Route>
         </Routes>
-      </AuthProvider>
     </BrowserRouter>
   );
 }

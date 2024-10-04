@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 const ProjectsContext = createContext();
 
@@ -8,6 +9,7 @@ export const useProjectsContext = () => {
 };
 
 export const ProjectsProvider = ({ children }) => {
+  const { user } = useAuth(); // Get the user from AuthContext
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,6 +17,8 @@ export const ProjectsProvider = ({ children }) => {
   const API_URL = 'http://localhost:5000/api/projects';
 
   const fetchProjects = async () => {
+    if (!user) return; // Don't fetch if there's no user
+
     setLoading(true);
     setError(null);
     try {
@@ -74,13 +78,17 @@ export const ProjectsProvider = ({ children }) => {
     }
   };
 
-  // Fetch projects on mount
+  // Fetch projects only when user exists
   useEffect(() => {
-    fetchProjects();
-  }, []);
+    if (user) {
+      fetchProjects();
+    }
+  }, [user]); // Depend on the user state to fetch projects
 
   return (
-    <ProjectsContext.Provider value={{ projects, loading, error, addProject, updateProject, deleteProject }}>
+    <ProjectsContext.Provider
+      value={{ projects, loading, error, addProject, updateProject, deleteProject }}
+    >
       {children}
     </ProjectsContext.Provider>
   );

@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   console.log(user);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+
 
 // Inside AuthProvider
 useEffect(() => {
@@ -50,7 +50,7 @@ const login = async (email, password) => {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     setUser(response.data.user);
     console.log("User state set:", response.data.user);
-    navigate('/todos'); // Ensure navigate is called after setting user
+    
   } catch (error) {
     console.error("Login error:", error);
     if (error.response && error.response.status === 401) {
@@ -63,7 +63,7 @@ const login = async (email, password) => {
   const register = async (userData) => {
     try {
       const response = await axios.post(`${API_URL}/register`, userData);
-      navigate('/login')
+      
       return response.data;
     } catch (error) {
       throw new Error(error.response.data.message);
@@ -74,7 +74,6 @@ const login = async (email, password) => {
     setUser(null);
     localStorage.removeItem('token');
     delete axios.defaults.headers.common['Authorization'];
-    navigate('/login');
   };
 
   // Avatar upload function

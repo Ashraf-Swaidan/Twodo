@@ -190,41 +190,41 @@ function TodoPage() {
 
           
           {loading
-            ? Array.from({ length: 3 }).map((_, index) => (
-                <li key={index} className="p-3 mb-2">
-                  <div className="max-w-[300px] w-full flex items-center gap-3">
-                    <div>
-                      <Skeleton className="flex rounded-full mb-7 w-7 h-7" />
-                    </div>
-                    <div className="flex flex-col w-full gap-2">
-                      <Skeleton className="w-2/5 h-4 rounded-lg" />
-                      <Skeleton className="w-4/5 h-3 rounded-lg" />
-                      <Skeleton className="w-3/5 h-2 rounded-lg" />
-                    </div>
-                  </div>
-                </li>
-              ))
-            : Object.entries(groupedTodos).map(
-                ([dateLabel, todos]) =>
-                  todos.length > 0 && (
-                    <div key={dateLabel}>
-                      <h2 className="mt-4 text-lg font-bold">{dateLabel}</h2>
-                      {todos.map((todo) => (
-                        <>
-                        <TodoItem
-                          key={todo._id}
-                          todo={todo}
-                          toggleCompletion={toggleCompletion}
-                          handleTaskSelection={handleTaskSelection}
-                          onDelete={openWarningModal}
-                          setTodos={setTodos}
-                        />
-                        <hr />
-                        </>
-                      ))}
-                    </div>
-                  )
-              )}
+  ? Array.from({ length: 3 }).map((_, index) => (
+      <li key={index} className="p-3 mb-2">  {/* <-- Add unique key here */}
+        <div className="max-w-[300px] w-full flex items-center gap-3">
+          <div>
+            <Skeleton className="flex rounded-full mb-7 w-7 h-7" />
+          </div>
+          <div className="flex flex-col w-full gap-2">
+            <Skeleton className="w-2/5 h-4 rounded-lg" />
+            <Skeleton className="w-4/5 h-3 rounded-lg" />
+            <Skeleton className="w-3/5 h-2 rounded-lg" />
+          </div>
+        </div>
+      </li>
+    ))
+  : Object.entries(groupedTodos).map(
+      ([dateLabel, todos]) =>
+        todos.length > 0 && (
+          <div key={dateLabel}>  {/* Key for the grouped section */}
+            <h2 className="mt-4 text-lg font-bold">{dateLabel}</h2>
+            {todos.map((todo) => (
+              <React.Fragment key={todo._id}>  {/* Key for the fragment */}
+                <TodoItem
+                  todo={todo}
+                  toggleCompletion={toggleCompletion}
+                  handleTaskSelection={handleTaskSelection}
+                  onDelete={openWarningModal}
+                  setTodos={setTodos}
+                />
+                <hr />
+              </React.Fragment>
+            ))}
+          </div>
+        )
+    )}
+
         </ul>
       </div>
 
