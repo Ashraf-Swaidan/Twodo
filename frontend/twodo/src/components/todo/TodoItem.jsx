@@ -277,9 +277,7 @@ const TodoItem = ({
                       onChange={(e) =>
                         handleSubtaskEditChange(index, e.target.value)
                       }
-                      className={`text-xs sm:text-lg outline-none border-0  ml-2 ${
-                        subtask.completed ? "line-through text-gray-500" : ""
-                      }`}
+                      className={`text-xs sm:text-lg outline-none border-0  ml-2  text-gray-500 `}
                     />
                     <button
                       onClick={() => handleSubtaskDelete(subtask._id)}

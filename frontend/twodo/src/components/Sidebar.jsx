@@ -12,14 +12,22 @@ function Sidebar({ isOpen, toggleSidebar }) {
   const [isDropdownOpen, setDropdownOpen] = useState(false); // Dropdown state
   const { projects } = useProjectsContext();
   console.log(projects);
-  
+
   // Toggle dropdown
   const toggleDropdown = () => {
     setDropdownOpen(!isDropdownOpen);
   };
 
+  // Close dropdown when sidebar is closed
+  const handleToggleSidebar = () => {
+    if (isOpen) {
+      setDropdownOpen(false); // Close dropdown if sidebar is closing
+    }
+    toggleSidebar();
+  };
+
   const activeClass = (path) =>
-    location.pathname === path ? 'bg-third rounded-lg font-bold' : '';
+    location.pathname === path ? 'bg-third rounded font-bold' : '';
 
   return (
     <>
@@ -49,7 +57,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
               <BsLayoutSidebar
                 className="cursor-pointer text-accent"
                 size={20}
-                onClick={toggleSidebar}
+                onClick={handleToggleSidebar}
               />
             </div>
 
@@ -59,7 +67,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
                 <li className={`mb-2 ${activeClass('/')}`}>
                   <Link
                     to="/"
-                    className={`flex items-center text-accent hover:bg-third rounded-lg py-1 px-3 ${activeClass('/')}`}
+                    className={`flex items-center text-accent hover:bg-third rounded py-1 px-3 ${activeClass('/')}`}
                   >
                     <FaHome className="mr-4" />
                     {isOpen && <span>Home</span>}
@@ -68,7 +76,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
                 <li className={`mb-4 ${activeClass('/todos')}`}>
                   <Link
                     to="/todos"
-                    className={`flex items-center text-accent hover:bg-third py-1 px-3 rounded-full ${activeClass('/todos')}`}
+                    className={`flex items-center text-accent hover:bg-third py-1 px-3 rounded ${activeClass('/todos')}`}
                   >
                     <FaTasks className="mr-4" />
                     {isOpen && <span>Todos</span>}
@@ -81,12 +89,15 @@ function Sidebar({ isOpen, toggleSidebar }) {
                 {/* Project Links */}
                 <div>
                   <span className="font-semibold text-accent">Projects</span>
-                  <ul className="mt-2">
+                  <ul
+                    className="mt-2 overflow-y-auto"
+                    style={{ maxHeight: '200px' }} // Set max height and scroll if needed
+                  >
                     {projects.map((project) => (
                       <li key={project._id} className={`mb-2 ${activeClass(`/project/${project._id}`)}`}>
                         <Link
                           to={`/project/${project._id}`}
-                          className={`flex items-center text-accent hover:bg-third py-1 px-3 rounded-lg ${activeClass(`/project/${project._id}`)}`}
+                          className={`flex items-center text-accent hover:bg-third py-1 px-3 rounded ${activeClass(`/project/${project._id}`)}`}
                         >
                           {isOpen && <span>{project.name}</span>}
                         </Link>
@@ -102,7 +113,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
 
       {/* Dropdown Menu */}
       {isDropdownOpen && (
-        <div className="absolute z-30 p-2 rounded-lg shadow-xl top-16 left-5 w-53 bg-primary border-accent">
+        <div className="absolute z-30 p-2 rounded shadow-xl border-1 top-16 left-5 w-53 bg-primary ">
           <div className="p-2 border-b border-neutral-400">
             <span className="font-semibold text-accent">Email</span>
             <div className="overflow-hidden text-sm text-accent text-ellipsis whitespace-nowrap" title={user ? user.email : 'user@example.com'}>
@@ -128,7 +139,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
       {!isOpen && (
         <div
           className="fixed z-30 cursor-pointer top-7 left-7"
-          onClick={toggleSidebar}
+          onClick={handleToggleSidebar}
         >
           <BsLayoutSidebar size={20} className="text-accent" />
         </div>
