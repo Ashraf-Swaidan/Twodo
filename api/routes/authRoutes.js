@@ -51,8 +51,16 @@ router.post('/login', async (req, res) => {
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) return res.status(401).json({ message: 'Invalid credentials' });
 
-    const token = jwt.sign({ id: user._id }, SECRET, { expiresIn: '1h' });
-
+    const token = jwt.sign(
+      {
+        id: user._id,           // User ID
+        username: user.username, // User username
+        email: user.email,      // User email
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }        // Token expiration time
+    );
+    
     // Return token and user details
     res.json({
       token,
@@ -73,6 +81,19 @@ router.get('/me', verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.userId).select('-password');
     if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Fetch user details by ID
+router.get('/:id', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('username email'); // Only get username and email
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: error.message });

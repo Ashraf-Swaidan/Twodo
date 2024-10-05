@@ -40,14 +40,19 @@ router.get('/', verifyToken, async (req, res) => {
 router.get('/project/:projectId', verifyToken, async (req, res) => {
   try {
     const { projectId } = req.params;
+    
+    // Find the project by its ID
+    const project = await Project.findById(projectId)
+      .populate('todos'); // Populate the todos field if necessary
 
-    // Find todos that either belong to the specified project or have no project field
+    // Check if the user is the owner or a collaborator
+    if (!project || (project.owner.toString() !== req.userId && !project.collaborators.some(collab => collab.user.toString() === req.userId))) {
+      return res.status(403).json({ message: 'Access denied. You are neither the owner nor a collaborator.' });
+    }
+
+    // Find todos that belong to the specified project
     const todos = await Todo.find({ 
-      user: req.userId, 
-      $or: [
-        { project: projectId }, // Todos that belong to the specified project
-        { project: { $exists: false } } // Todos that do not have a project field
-      ]
+      project: projectId // Only return todos that belong to the specified project
     });
 
     res.json(todos);

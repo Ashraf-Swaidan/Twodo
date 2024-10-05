@@ -6,7 +6,9 @@ export const verifyToken = (req, res, next) => {
 
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) return res.status(401).json({ message: 'Unauthorized!' });
-    req.userId = decoded.id; // Save user id to request for later use
+    req.userId = decoded.id;
+    req.username = decoded.username;
+    req.email = decoded.email; // Save user id to request for later use
     next();
   });
 };

@@ -9,10 +9,12 @@ import { Checkbox, Skeleton, DatePicker, CheckboxGroup } from "@nextui-org/react
 import { Dialog, DialogActions, DialogContent } from "@mui/material";
 
 function ProjectPage() {
+
   const { projectId } = useParams();
-  const { projects, updateProject } = useProjectsContext();
+  const { projects, updateProject, inviteCollaborator } = useProjectsContext();
   const { addTodo, updateTodo, deleteTodo, fetchTodosByProject } = useTodos();
   const [todos, setTodos] = useState([]);
+  console.log(todos)
   const [filteredTodos, setFilteredTodos] = useState([]);
   const [error, setError] = useState("");
   const [selectedTodo, setSelectedTodo] = useState(null);
@@ -30,6 +32,10 @@ function ProjectPage() {
   const [newTitle, setNewTitle] = useState(""); // State for new title
   const [newDescription, setNewDescription] = useState(""); // State for new description
   const [isRescheduling, setIsRescheduling] = useState(false); // New state for rescheduling
+  const [isInviteDropdownVisible, setIsInviteDropdownVisible] = useState(false);
+  const [emailToInvite, setEmailToInvite] = useState("");
+  console.log(emailToInvite, projectId)
+
 
   const project = projects.find((project) => project._id === projectId);
   const [dueDate, setDueDate] = useState(null);
@@ -347,6 +353,39 @@ function ProjectPage() {
           )}
         </div>
       )}
+
+<button
+  onClick={() => setIsInviteDropdownVisible(prev => !prev)}
+  className="px-3 py-1 ml-2 text-accent border-1 rounded"
+>
+  Invite your friend
+</button>
+
+{isInviteDropdownVisible && (
+  <div className="absolute mt-2 z-10 p-4 bg-white border border-gray-300 rounded shadow-lg w-64">
+    <input
+      type="email"
+      value={emailToInvite}
+      onChange={(e) => setEmailToInvite(e.target.value)}
+      placeholder="Enter email"
+      className="w-full p-2 mb-2 border rounded focus:outline-none"
+    />
+
+    <button
+  onClick={() => {
+    inviteCollaborator(projectId, emailToInvite);
+    setEmailToInvite(""); // Optionally, clear the input after inviting
+    setIsInviteDropdownVisible(false); // Hide the dropdown after invite
+  }}
+  className="px-3 py-1 text-white bg-red-500 rounded hover:bg-red-600"
+>
+  Invite
+</button>
+
+  </div>
+)}
+
+
 
       <div className="my-2 w-1/2">
         <span className="text-sm">{`Progress: ${Math.round(progress)}%`}</span>

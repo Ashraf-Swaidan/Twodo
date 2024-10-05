@@ -1,18 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Card, CardFooter, Image, Button, Spinner } from '@nextui-org/react'; // Import Spinner for visual feedback
+import { Card, CardFooter, Image, Button, Spinner } from '@nextui-org/react';
+import useInvitations from '../hooks/useInvitations';
 
 const ProfilePage = () => {
-  const { user, uploadAvatar } = useAuth();
+  const { user, uploadAvatar, getUserDetails } = useAuth();
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
-  const [uploadSuccess, setUploadSuccess] = useState(false); // For success message
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+
+  const { 
+    invitationsToUser, 
+    invitationsByUser, 
+    fetchInvitationsToUser, 
+    fetchInvitationsByUser, 
+    acceptInvitation, 
+    rejectInvitation 
+  } = useInvitations();
+
+  console.log(invitationsToUser)
+  useEffect(() => {
+    fetchInvitationsToUser();
+    fetchInvitationsByUser();
+  }, []);
 
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
     setUploadError(null);
-    setUploadSuccess(false); // Reset success message when a new file is chosen
+    setUploadSuccess(false);
   };
 
   const handleUpload = async () => {
@@ -23,12 +39,12 @@ const ProfilePage = () => {
 
     setIsUploading(true);
     setUploadError(null);
-    setUploadSuccess(false); // Reset success message before upload
+    setUploadSuccess(false);
 
     try {
       await uploadAvatar(selectedFile);
       setUploadSuccess(true);
-      setSelectedFile(null); // Reset file input after upload
+      setSelectedFile(null);
     } catch (error) {
       setUploadError('Failed to upload avatar. Please try again.');
     } finally {
@@ -36,41 +52,55 @@ const ProfilePage = () => {
     }
   };
 
+  const handleAcceptInvitation = async (invitationId) => {
+    try {
+      await acceptInvitation(invitationId);
+      fetchInvitationsToUser(); // Refetch invitations to update the list
+    } catch (error) {
+      console.error('Failed to accept invitation', error);
+    }
+  };
+
+  const handleRejectInvitation = async (invitationId) => {
+    try {
+      await rejectInvitation(invitationId);
+      fetchInvitationsToUser(); // Refetch invitations to update the list
+    } catch (error) {
+      console.error('Failed to reject invitation', error);
+    }
+  };
+
   return (
-    <div className="flex flex-col py-10 ">
+    <div className="flex flex-col py-10">
       {/* Header Section */}
-      <div className="mb-6 ">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Welcome, {user?.username}!</h1>
-        <p className="text-gray-500">Manage your profile and avatar below.</p>
+        <p className="text-gray-500">Manage your profile, avatar, and invitations below.</p>
       </div>
 
       {/* Profile Card */}
       <Card isFooterBlurred radius="lg" className="border-none w-[250px]">
-        {/* Display the user's current avatar */}
         <Image
           alt="User Avatar"
           className="object-cover"
           height={250}
           width={250}
-          src={`http://localhost:5000${user?.avatar}`} // Use the user's avatar URL
+          src={`http://localhost:5000${user?.avatar}`} // User's avatar URL
         />
-        
         <CardFooter className="justify-between before:bg-white/10 border-white/20 border-1 overflow-hidden py-2 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
           <p className="text-md text-white/90 font-semibold">{user?.username}</p>
 
-          {/* Change Avatar Button */}
           <Button
             className="text-md text-white bg-black/30 hover:bg-black/50"
             variant="flat"
             color="default"
             radius="lg"
             size="sm"
-            onClick={() => document.getElementById('avatarInput').click()} // Trigger file input
+            onClick={() => document.getElementById('avatarInput').click()}
           >
             {isUploading ? <Spinner size="sm" /> : 'Change Avatar'}
           </Button>
 
-          {/* Hidden input for file selection */}
           <input
             id="avatarInput"
             type="file"
@@ -103,14 +133,70 @@ const ProfilePage = () => {
       )}
 
       {/* Error Message */}
-      {uploadError && (
-        <p className="mt-4 text-red-500 ">{uploadError}</p>
-      )}
+      {uploadError && <p className="mt-4 text-red-500">{uploadError}</p>}
 
       {/* Success Message */}
-      {uploadSuccess && (
-        <p className="mt-4 text-green-500 ">Avatar updated successfully!</p>
-      )}
+      {uploadSuccess && <p className="mt-4 text-green-500">Avatar updated successfully!</p>}
+
+      {/* Invitations Section */}
+      <div className="mt-10">
+        <h2 className="text-xl font-bold text-gray-800">Invitations</h2>
+
+        {/* Invitations Sent To the User */}
+        <div className="mt-4">
+          <h3 className="text-lg font-semibold">Invitations to You</h3>
+          {invitationsToUser.length === 0 ? (
+            <p className="text-gray-600">No invitations found.</p>
+          ) : (
+            invitationsToUser.map((invitation) => (
+              <div key={invitation._id} className="my-4 p-4 border rounded-lg bg-gray-100">
+                <p>
+                  Project: <strong>{invitation.project.name}</strong>
+                </p>
+                <p>
+                  Invited by: <strong>{invitation.invitedBy.username}</strong>
+                </p>
+                <p>Status: {invitation.status}</p>
+
+                {invitation.status === 'pending' && (
+                  <div className="flex mt-2 gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => handleAcceptInvitation(invitation._id)}
+                    >
+                      Accept
+                    </Button>
+                    <Button
+                      size="sm"
+                      color="error"
+                      onClick={() => handleRejectInvitation(invitation._id)}
+                    >
+                      Reject
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Invitations Sent By the User */}
+        <div className="mt-4">
+          <h3 className="text-lg font-semibold">Invitations You Sent</h3>
+          {invitationsByUser.length === 0 ? (
+            <p className="text-gray-600">You haven't sent any invitations yet.</p>
+          ) : (
+            invitationsByUser.map((invitation) => (
+              <div key={invitation._id} className="my-4 p-4 border rounded-lg bg-gray-100">
+                <p>
+                  Project: <strong>{invitation.project.name}</strong>
+                </p>
+                <p>Status: {invitation.status}</p>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 };

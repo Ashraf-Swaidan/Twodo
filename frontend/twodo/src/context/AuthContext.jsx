@@ -99,8 +99,22 @@ const login = async (email, password) => {
     }
   };
 
+   const getUserDetails = async (userId) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`http://localhost:5000/api/users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch user details');
+  }
+};
+
   return (
-    <AuthContext.Provider value={{ user, register, login, logout, loading, uploadAvatar }}>
+    <AuthContext.Provider value={{ user, register, login, logout, loading, uploadAvatar, getUserDetails }}>
       {!loading && children}
     </AuthContext.Provider>
   );
