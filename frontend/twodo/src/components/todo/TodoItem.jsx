@@ -17,6 +17,7 @@ const TodoItem = ({
   handleTaskSelection,
   onDelete,
   setTodos,
+  userRole
 }) => {
   const { projects } = useProjectsContext();
   const { updateTodo } = useTodos();
@@ -203,10 +204,11 @@ const TodoItem = ({
             color="danger"
             size="lg"
             css={{ margin: 0 }}
+            isDisabled={userRole === 'viewer'}
           />
         )}
         <div className="ml-4 w-full">
-          {isEditing ? (
+          {isEditing && userRole !== 'viewer' ? (
             <>
               <span
                 className={`flex font-semibold ${
@@ -411,6 +413,7 @@ const TodoItem = ({
                         color="danger"
                         size="sm"
                         css={{ margin: 0 }}
+                        isDisabled={userRole === 'viewer'}
                       />
                       <span
                         className={`ml-2 ${
@@ -429,15 +432,17 @@ const TodoItem = ({
       </div>
   
       {/* Render Action Buttons only when not in editing mode */}
-      {!isEditing && (
+      {!isEditing && userRole !== 'viewer' && (
         <div className="flex items-center action-buttons ">
           <button
+            disabled={userRole === 'viewer'}
             onClick={() => setIsEditing(!isEditing)}
             className="ml-2 md:text-2xl sm:text-sm text-accent"
           >
             <RiQuillPenLine />
           </button>
           <button
+            disabled={userRole === 'viewer'}
             onClick={() => handleDelete(todo)}
             className="ml-2 md:text-2xl sm:text-sm text-red-500"
           >

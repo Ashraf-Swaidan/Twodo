@@ -2,10 +2,20 @@ import React from "react";
 import TodoItem from "../todo/TodoItem";
 import { Skeleton } from "@nextui-org/react";
 import { FaPlus, FaSearch } from "react-icons/fa";
-const TodoList = ({ loading, groupedTodos, toggleCompletion, handleTaskSelection, openWarningModal,setIsModalOpen , setTodos }) => (
+const TodoList = ({
+  loading,
+  groupedTodos,
+  toggleCompletion,
+  handleTaskSelection,
+  openWarningModal,
+  setIsModalOpen,
+  setTodos,
+  userRole
+}) => (
   <ul className="min-w-full divide-y">
 
-    <li
+    {userRole !== 'viewer' ? (
+      <li
       onClick={() => setIsModalOpen(true)}
       className="flex items-center justify-start p-3 px-5 border rounded cursor-pointer hover:bg-slate-50 border-neutral-200"
     >
@@ -14,6 +24,8 @@ const TodoList = ({ loading, groupedTodos, toggleCompletion, handleTaskSelection
       </span>
       <span className="font-semibold">Add new task</span>
     </li>
+    ) : <hr  />}
+    
     {loading
       ? Array.from({ length: 3 }).map((_, index) => (
           <li key={index} className="p-3 mb-2">
@@ -42,6 +54,7 @@ const TodoList = ({ loading, groupedTodos, toggleCompletion, handleTaskSelection
                     handleTaskSelection={handleTaskSelection}
                     onDelete={openWarningModal}
                     setTodos={setTodos}
+                    userRole={userRole}
                   />
                 ))}
               </div>

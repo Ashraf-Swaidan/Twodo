@@ -15,9 +15,10 @@ import { CiSettings } from "react-icons/ci";
 
 function ProjectPage() {
   const { projectId } = useParams();
-  const { projects, updateProject, inviteCollaborator, deleteProject } = useProjectsContext();
+  const { projects, updateProject, inviteCollaborator, deleteProject, removeCollaborator, updateCollaboratorRole } = useProjectsContext();
   const { addTodo, updateTodo, deleteTodo, fetchTodosByProject } = useTodos();
   const { user, getUserDetails } = useAuth();
+  console.log('rendered');
   console.log(user);
   const [users, setUsers] = useState([]);
   console.log(users);
@@ -53,6 +54,7 @@ function ProjectPage() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false); 
   const navigate = useNavigate(); 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  console.log(project)
 
   useEffect(() => {
     const getTodos = async () => {
@@ -83,35 +85,64 @@ function ProjectPage() {
   }, [todos, projectId]);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    console.log('function called ')
+    if (project && user) {
+      console.log('entered the condition')
+      console.log(user)
+      console.log(project.owner)
+      // Step 1: Check if the current user is the owner of the project
+      if (user.id === project.owner) {
+        console.log('set user as owner')
+        setUserRole("Owner");
+      } else {
+        // Step 2: Map through collaborators to check if the user is a collaborator and assign their role
+        console.log('entered sub else')
+        console.log('set user as his role')
+        const matchingCollaborator = project.collaborators.find(collaborator => collaborator.user === user.id);
+        
+        if (matchingCollaborator) {
+          console.log(`set user as his role: ${matchingCollaborator.role}`)
+          setUserRole(matchingCollaborator.role);
+        } else {
+          console.log('entered the else')
+          setUserRole("viewer");  // Default role
+        }
+      }
+    }
+}, [project, user]);
+
+useEffect(() => {
+  const fetchCollaboratorDetails = async () => {
+    if (project) {
       try {
-        const collaborators = project.collaborators;
-        const ownerId = project.owner
-        const userPromises = collaborators.map(async (collaborator) => {
+        // Step 1: Fetch collaborator details
+        const userPromises = project.collaborators.map(async (collaborator) => {
           const userDetails = await getUserDetails(collaborator.user);
-          console.log(collaborator.user);
           return {
             ...userDetails,
             role: collaborator.role,
           };
         });
 
-        // Get owner details
-        const ownerDetails = await getUserDetails(ownerId);
-        const allUsers = [{ ...ownerDetails, role: 'Owner' }, ...await Promise.all(userPromises)];
-        setUsers(allUsers);
+        // Step 2: Fetch owner details
+        const ownerDetails = await getUserDetails(project.owner);
 
-        // Determine the role of the current user
-        const currentUserRole = allUsers.find(u => u._id === user._id)?.role || "viewer";
-        setUserRole(currentUserRole);  // Set the role for current user
+        // Step 3: Combine owner and collaborators into one array
+        const allUsers = [{ ...ownerDetails, role: 'Owner' }, ...await Promise.all(userPromises)];
+
+        // Step 4: Set the users state
+        setUsers(allUsers);
 
       } catch (error) {
         console.error('Failed to fetch user details', error);
       }
-    };
+    }
+  };
 
-    fetchUsers();
-  }, [project, getUserDetails]);
+  fetchCollaboratorDetails();
+}, [project, getUserDetails]);
+
+
 
   const filterAndSortTodos = () => {
     const filtered = todos.filter((todo) => {
@@ -310,6 +341,36 @@ function ProjectPage() {
     setIsUserListVisible((prev) => !prev); // Toggle visibility
   };
 
+  const handleRemoveCollaborator = async (collaboratorId) => {
+    try {
+      await removeCollaborator(projectId, collaboratorId);
+      // Update the local users state by filtering out the removed collaborator
+      setUsers((prevUsers) => prevUsers.filter(user => user._id !== collaboratorId));
+      console.log("Collaborator removed successfully");
+    } catch (error) {
+      console.error("Error removing collaborator:", error.message);
+    }
+  };
+  
+  
+  const handleUpdateCollaboratorRole = async (collaboratorId, newRole) => {
+    try {
+      await updateCollaboratorRole(projectId, collaboratorId, newRole);
+      
+      // Update the local users state by modifying the role of the collaborator
+      setUsers((prevUsers) =>
+        prevUsers.map(user =>
+          user._id === collaboratorId ? { ...user, role: newRole } : user
+        )
+      );
+      
+      console.log("Collaborator role updated successfully");
+    } catch (error) {
+      console.error("Error updating collaborator role:", error.message);
+    }
+  };
+  
+
   return (
     <>
     <div className="absolute top-5 right-5">
@@ -325,8 +386,9 @@ function ProjectPage() {
             <ul>
               <li>
                 <button
-                  onClick={onOpen} // Open the modal when "Delete Project" is clicked
-                  className="block px-4 py-2 text-red-600 hover:bg-neutral-50 w-full text-left"
+                  disabled={userRole !== 'Owner' }
+                  onClick={ userRole === 'Owner' ? onOpen : undefined} // Open the modal when "Delete Project" is clicked
+                  className={`block px-4 py-2 hover:bg-neutral-50 w-full text-left ${userRole === 'Owner' ? 'text-red-600' : 'text-gray-300'}`}
                 >
                   Delete Project
                 </button>
@@ -392,6 +454,8 @@ function ProjectPage() {
         setIsUserListVisible={setIsUserListVisible}
         toggleUserList={toggleUserList}
         users={users}
+        handleRemoveCollaborator={handleRemoveCollaborator}
+        handleUpdateCollaboratorRole={handleUpdateCollaboratorRole}
       />
 
 

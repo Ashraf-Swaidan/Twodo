@@ -4,6 +4,7 @@ import { FaSearch } from "react-icons/fa";
 import UserList from "./UserList";
 
 const TodoFilters = ({
+  userRole,
   searchTerm,
   handleSearchChange,
   showCompleted,
@@ -22,7 +23,9 @@ const TodoFilters = ({
   project,
   isUserListVisible,
   toggleUserList,
-  users
+  users,
+  handleRemoveCollaborator,
+  handleUpdateCollaboratorRole
 }) => (
   <div className="flex flex-wrap items-center mb-6 sm:w-auto space-y-3 md:space-y-2">
     <div className="flex items-center w-full sm:w-auto">
@@ -78,12 +81,15 @@ const TodoFilters = ({
 
       <div>
 
-      <button
+      {(userRole === 'Owner' || userRole === 'editor') && 
+        <button
         onClick={() => setIsInviteDropdownVisible((prev) => !prev)}
         className=" px-3 py-1 ml-2 text-accent border-1 rounded"
       >
         Invite your friend
       </button>
+    }
+      
 
       {isInviteDropdownVisible && (
         <div className="absolute mt-2 z-20 p-4 bg-white border border-gray-300 rounded shadow-lg w-74">
@@ -123,6 +129,9 @@ const TodoFilters = ({
         <div className="absolute right-50 z-50"> {/* Adjust styles as needed */}
           <UserList
             users={users}
+            userRole={userRole}
+            handleRemoveCollaborator={handleRemoveCollaborator}
+            handleUpdateCollaboratorRole={handleUpdateCollaboratorRole}
           />
         </div>
       )}

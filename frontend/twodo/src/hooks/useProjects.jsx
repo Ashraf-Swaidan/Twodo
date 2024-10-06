@@ -34,8 +34,8 @@ export const ProjectsProvider = ({ children }) => {
       const fetchedProjects = response.data;
       
       // Split owned projects and collaborations
-      const owned = fetchedProjects.filter(project => project.owner._id === user._id);
-      const collaborations = fetchedProjects.filter(project => project.owner._id !== user._id);
+      const owned = fetchedProjects.filter(project => project.owner._id === user.id);
+      const collaborations = fetchedProjects.filter(project => project.owner._id !== user.id);
 
       setProjects(fetchedProjects);
       setOwnedProjects(owned);

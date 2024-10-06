@@ -8,6 +8,7 @@ import Avatar from '@mui/material/Avatar';
 
 function Sidebar({ isOpen, toggleSidebar }) {
   const { logout, user } = useAuth();
+  console.log(user)
   const location = useLocation();
   const [isDropdownOpen, setDropdownOpen] = useState(false); // Dropdown state
   const { projects } = useProjectsContext();

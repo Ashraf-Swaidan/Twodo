@@ -82,7 +82,12 @@ router.get('/me', verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.userId).select('-password');
     if (!user) return res.status(404).json({ message: 'User not found' });
-    res.json(user);
+    res.json({
+        id: user._id,
+        email: user.email,
+        username: user.username,
+        avatar: user.avatar // Include avatar URL
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

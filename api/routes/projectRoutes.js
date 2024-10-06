@@ -85,21 +85,25 @@ router.delete('/:id', verifyToken, async (req, res) => {
     // Step 1: Delete all Todos associated with the project
     const projectTodos = await Todo.deleteMany({ project: req.params.id });
 
-    // Step 2: Delete the project itself
+    // Step 2: Delete all Invitations associated with the project
+    const projectInvitations = await Invitation.deleteMany({ project: req.params.id });
+
+    // Step 3: Delete the project itself (Only the owner can delete the project)
     const project = await Project.findOneAndDelete({
       _id: req.params.id,
-      owner: req.userId, // Only the owner can delete the project
+      owner: req.userId,
     });
 
     if (!project) {
       return res.status(404).json({ message: 'Project not found or access denied' });
     }
 
-    res.json({ message: 'Project and associated todos deleted' });
+    res.json({ message: 'Project, associated todos, and invitations deleted' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 // Add Collaborator
 router.post('/:id/collaborators', verifyToken, async (req, res) => {
@@ -167,7 +171,13 @@ router.post('/:id/invite', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'Project not found' });
     }
 
-    if (project.owner.toString() !== req.userId) {
+    // Check if the user is the owner or an editor
+    const isOwner = project.owner.toString() === req.userId;
+    const isEditor = project.collaborators.some(
+      (collaborator) => collaborator.user.toString() === req.userId && collaborator.role === 'editor'
+    );
+
+    if (!isOwner && !isEditor) {
       return res.status(403).json({ message: 'Not authorized to invite collaborators' });
     }
 
@@ -180,9 +190,9 @@ router.post('/:id/invite', verifyToken, async (req, res) => {
         existingInvite.rejectedAt = null; // Clear the rejection timestamp if needed
         await existingInvite.save(); // Save the updated invitation
 
-        return res.status(200).json({ 
-          message: 'Invitation previously rejected. Resending the invitation.', 
-          invitation: existingInvite 
+        return res.status(200).json({
+          message: 'Invitation previously rejected. Resending the invitation.',
+          invitation: existingInvite,
         });
       }
       return res.status(400).json({ message: 'Invitation already sent' });
@@ -195,7 +205,7 @@ router.post('/:id/invite', verifyToken, async (req, res) => {
       invitedBy: req.userId,
     });
     await invitation.save();
-  
+
     res.status(201).json({ message: 'Invitation sent', invitation });
   } catch (error) {
     res.status(500).json({ message: error.message });
