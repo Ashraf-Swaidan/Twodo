@@ -9,6 +9,7 @@ export const verifyToken = (req, res, next) => {
     req.userId = decoded.id;
     req.username = decoded.username;
     req.email = decoded.email; // Save user id to request for later use
+    req.avatar = decoded.avatar;
     next();
   });
 };

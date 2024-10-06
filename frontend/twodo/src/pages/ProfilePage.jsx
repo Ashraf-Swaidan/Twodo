@@ -19,11 +19,12 @@ const ProfilePage = () => {
     rejectInvitation 
   } = useInvitations();
 
-  console.log(invitationsToUser)
   useEffect(() => {
     fetchInvitationsToUser();
     fetchInvitationsByUser();
   }, []);
+
+  console.log(invitationsToUser, invitationsByUser)
 
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
@@ -71,7 +72,7 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="flex flex-col py-10">
+    <div className="flex flex-col py-10 px-5">
       {/* Header Section */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Welcome, {user?.username}!</h1>
@@ -143,19 +144,25 @@ const ProfilePage = () => {
         <h2 className="text-xl font-bold text-gray-800">Invitations</h2>
 
         {/* Invitations Sent To the User */}
-        <div className="mt-4">
+        <div className="mt-4 max-h-60 overflow-y-auto border rounded-lg bg-white shadow-md p-4">
           <h3 className="text-lg font-semibold">Invitations to You</h3>
           {invitationsToUser.length === 0 ? (
             <p className="text-gray-600">No invitations found.</p>
           ) : (
             invitationsToUser.map((invitation) => (
-              <div key={invitation._id} className="my-4 p-4 border rounded-lg bg-gray-100">
+              <div key={invitation._id} className="my-2 p-2 border rounded-lg bg-gray-100">
                 <p>
                   Project: <strong>{invitation.project.name}</strong>
                 </p>
-                <p>
-                  Invited by: <strong>{invitation.invitedBy.username}</strong>
-                </p>
+
+                  <span className='flex space-x-1'>
+                    <span>
+                       Invited by:
+                    </span>
+                    <Image width={25} height={25} src={`http://localhost:5000${invitation.invitedBy.avatar}`}/>
+                    <strong> {invitation.invitedBy.username}</strong>
+                  </span> 
+
                 <p>Status: {invitation.status}</p>
 
                 {invitation.status === 'pending' && (
@@ -181,16 +188,19 @@ const ProfilePage = () => {
         </div>
 
         {/* Invitations Sent By the User */}
-        <div className="mt-4">
+        <div className="mt-4 max-h-60 overflow-y-auto border rounded-lg bg-white shadow-md p-4">
           <h3 className="text-lg font-semibold">Invitations You Sent</h3>
           {invitationsByUser.length === 0 ? (
             <p className="text-gray-600">You haven't sent any invitations yet.</p>
           ) : (
             invitationsByUser.map((invitation) => (
-              <div key={invitation._id} className="my-4 p-4 border rounded-lg bg-gray-100">
+              <div key={invitation._id} className="my-2 p-2 border rounded-lg bg-gray-100">
                 <p>
                   Project: <strong>{invitation.project.name}</strong>
                 </p>
+                    <span>
+                       Invited {invitation.email}
+                    </span> 
                 <p>Status: {invitation.status}</p>
               </div>
             ))

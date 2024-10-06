@@ -64,7 +64,7 @@ router.get('/to', verifyToken, async (req, res) => {
   try {
     const invitations = await Invitation.find({ email: req.email, status: 'pending' }).populate('project invitedBy');
     res.json(invitations);
-    console.log(req.username);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

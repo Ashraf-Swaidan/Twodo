@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { Checkbox, DatePicker } from "@nextui-org/react";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from "@nextui-org/react";
+
 
 const ProjectHeader = ({
+  userRole,
   project,
   handleStartProject,
   handleCheckboxChange,
@@ -21,6 +24,9 @@ const ProjectHeader = ({
   handleDueDateChange,
   onSaveDueDate,
   progress,
+  isOpen,
+  onOpenChange,
+  handleDeleteProject
 }) => {
   return (
     <div className="">
@@ -32,6 +38,7 @@ const ProjectHeader = ({
             onChange={handleCheckboxChange}
             color="danger"
             size="lg"
+            isDisabled={userRole !== 'Owner'}
           />
         )}
         <div>
@@ -136,6 +143,36 @@ const ProjectHeader = ({
         </div>
       </div>
 
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Confirm Project Deletion
+              </ModalHeader>
+              <ModalBody>
+                <p>
+                  Are you sure you want to delete this project? This action cannot be undone, and all todos associated with this project will be deleted.
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="default" variant="light" onPress={onClose}>
+                  Cancel
+                </Button>
+                <Button
+                  color="danger"
+                  onPress={() => {
+                    handleDeleteProject(); // Call the delete project function
+                    onClose(); // Close the modal
+                  }}
+                >
+                  Confirm
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
    
     </div>
   );

@@ -3,17 +3,28 @@ import { useParams } from "react-router-dom";
 import { useTodos } from "../hooks/useTodos";
 import CreateTodoModal from "../components/todoModals/CreateTodoModal";
 import { useProjectsContext } from "../hooks/useProjects";
+import { useAuth } from "../context/AuthContext";
 import { Dialog, DialogActions, DialogContent } from "@mui/material";
 import ProjectHeader from "../components/project/ProjectHeader";
 import TodoFilters from "../components/project/TodoFilters";
 import TodoList from "../components/project/TodoList";
+import { useNavigate } from "react-router-dom";
+import { useDisclosure } from "@nextui-org/react";
+import { CiSettings } from "react-icons/ci";
+
 
 function ProjectPage() {
   const { projectId } = useParams();
-  const { projects, updateProject, inviteCollaborator } = useProjectsContext();
+  const { projects, updateProject, inviteCollaborator, deleteProject } = useProjectsContext();
   const { addTodo, updateTodo, deleteTodo, fetchTodosByProject } = useTodos();
+  const { user, getUserDetails } = useAuth();
+  console.log(user);
+  const [users, setUsers] = useState([]);
+  console.log(users);
+  const [userRole, setUserRole] = useState("viewer");
+  console.log(userRole)
   const [todos, setTodos] = useState([]);
-  console.log(todos);
+  console.log(projects);
   const [filteredTodos, setFilteredTodos] = useState([]);
   const [error, setError] = useState("");
   const [selectedTodo, setSelectedTodo] = useState(null);
@@ -36,7 +47,12 @@ function ProjectPage() {
   console.log(emailToInvite, projectId);
 
   const project = projects.find((project) => project._id === projectId);
+
   const [dueDate, setDueDate] = useState(null);
+  const [isUserListVisible, setIsUserListVisible] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false); 
+  const navigate = useNavigate(); 
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   useEffect(() => {
     const getTodos = async () => {
@@ -65,6 +81,37 @@ function ProjectPage() {
       setAvailableTags(tags);
     }
   }, [todos, projectId]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const collaborators = project.collaborators;
+        const ownerId = project.owner
+        const userPromises = collaborators.map(async (collaborator) => {
+          const userDetails = await getUserDetails(collaborator.user);
+          console.log(collaborator.user);
+          return {
+            ...userDetails,
+            role: collaborator.role,
+          };
+        });
+
+        // Get owner details
+        const ownerDetails = await getUserDetails(ownerId);
+        const allUsers = [{ ...ownerDetails, role: 'Owner' }, ...await Promise.all(userPromises)];
+        setUsers(allUsers);
+
+        // Determine the role of the current user
+        const currentUserRole = allUsers.find(u => u._id === user._id)?.role || "viewer";
+        setUserRole(currentUserRole);  // Set the role for current user
+
+      } catch (error) {
+        console.error('Failed to fetch user details', error);
+      }
+    };
+
+    fetchUsers();
+  }, [project, getUserDetails]);
 
   const filterAndSortTodos = () => {
     const filtered = todos.filter((todo) => {
@@ -107,6 +154,16 @@ function ProjectPage() {
     setSelectedTodo(todo);
   };
 
+  const handleDeleteProject = async () => {
+    try {
+      await deleteProject(projectId);
+      navigate("/todos"); // Redirect to the /todos route after deletion
+    } catch (error) {
+      console.error("Error deleting project:", error);
+    }
+  };
+
+
   const handleDelete = async (id) => {
     try {
       await deleteTodo(id);
@@ -116,6 +173,7 @@ function ProjectPage() {
       setError(error.message);
     }
   };
+  
 
   const handleCreateTodo = async (todoData) => {
     const newTodo = await addTodo(todoData);
@@ -248,9 +306,40 @@ function ProjectPage() {
   const groupedTodos = groupTodosByDate(filteredTodos);
   const progress = calculateProgress();
 
+  const toggleUserList = () => {
+    setIsUserListVisible((prev) => !prev); // Toggle visibility
+  };
+
   return (
+    <>
+    <div className="absolute top-5 right-5">
+        <button
+          className="text-gray-600 hover:text-black"
+          onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+        >
+          <CiSettings size={24}/>
+        </button>
+
+        {isSettingsOpen && (
+          <div className="absolute right-0 w-48 bg-white shadow-md rounded border-1 z-10">
+            <ul>
+              <li>
+                <button
+                  onClick={onOpen} // Open the modal when "Delete Project" is clicked
+                  className="block px-4 py-2 text-red-600 hover:bg-neutral-50 w-full text-left"
+                >
+                  Delete Project
+                </button>
+              </li>
+            </ul>
+          </div>
+        )}
+      </div>
+
+
     <div className="p-6 w-full lg:w-2/3 md:w-full ">
       <ProjectHeader
+        userRole={userRole}
         project={project}
         handleStartProject={handleStartProject}
         handleCheckboxChange={handleCheckboxChange}
@@ -275,9 +364,14 @@ function ProjectPage() {
         isInviteDropdownVisible={isInviteDropdownVisible}
         setIsInviteDropdownVisible={setIsInviteDropdownVisible}
         progress={progress}
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        handleDeleteProject={handleDeleteProject}
       />
+      
 
       <TodoFilters
+        userRole={userRole}
         searchTerm={searchTerm}
         handleSearchChange={handleSearchChange}
         showCompleted={showCompleted}
@@ -292,8 +386,17 @@ function ProjectPage() {
         inviteCollaborator={inviteCollaborator}
         isInviteDropdownVisible={isInviteDropdownVisible}
         setIsInviteDropdownVisible={setIsInviteDropdownVisible}
+        projectId={projectId}
+        project={project}
+        isUserListVisible={isUserListVisible}
+        setIsUserListVisible={setIsUserListVisible}
+        toggleUserList={toggleUserList}
+        users={users}
       />
+
+
       <TodoList
+        userRole={userRole}
         loading={loading}
         groupedTodos={groupedTodos}
         toggleCompletion={toggleCompletion}
@@ -333,6 +436,7 @@ function ProjectPage() {
         </DialogActions>
       </Dialog>
     </div>
+        </>
   );
 }
 

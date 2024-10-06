@@ -1,6 +1,7 @@
 import React from "react";
 import { Checkbox, CheckboxGroup } from "@nextui-org/react";
 import { FaSearch } from "react-icons/fa";
+import UserList from "./UserList";
 
 const TodoFilters = ({
   searchTerm,
@@ -17,8 +18,13 @@ const TodoFilters = ({
   inviteCollaborator,
   isInviteDropdownVisible,
   setIsInviteDropdownVisible,
+  projectId,
+  project,
+  isUserListVisible,
+  toggleUserList,
+  users
 }) => (
-  <div className="flex flex-wrap items-center mb-6 sm:w-auto space-y-3 md:space-y-0">
+  <div className="flex flex-wrap items-center mb-6 sm:w-auto space-y-3 md:space-y-2">
     <div className="flex items-center w-full sm:w-auto">
       <input
         type="text"
@@ -69,7 +75,9 @@ const TodoFilters = ({
       
     </div>
 
-    <div>
+
+      <div>
+
       <button
         onClick={() => setIsInviteDropdownVisible((prev) => !prev)}
         className=" px-3 py-1 ml-2 text-accent border-1 rounded"
@@ -101,7 +109,25 @@ const TodoFilters = ({
           </div>
         </div>
       )}
-    </div>
+       </div>
+
+            <div>
+        <button
+        onClick={toggleUserList}
+        className=" px-3 py-1 ml-2 text-accent border-1 rounded"
+      >
+        {isUserListVisible ? "Hide Collaborators" : "Show Collaborators"}
+      </button>
+
+      {isUserListVisible && project && ( // Render UserList conditionally
+        <div className="absolute right-50 z-50"> {/* Adjust styles as needed */}
+          <UserList
+            users={users}
+          />
+        </div>
+      )}
+        </div>
+
   </div>
 );
 

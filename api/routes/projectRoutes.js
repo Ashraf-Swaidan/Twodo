@@ -2,6 +2,7 @@ import express from 'express';
 import Project from '../models/Project.js';
 import { verifyToken } from '../middleware/authMiddleware.js';
 import Invitation from '../models/Invitation.js';
+import Todo from '../models/Todo.js';
 
 const router = express.Router();
 
@@ -81,13 +82,20 @@ router.put('/:id', verifyToken, async (req, res) => {
 // Delete Project (only owner)
 router.delete('/:id', verifyToken, async (req, res) => {
   try {
+    // Step 1: Delete all Todos associated with the project
+    const projectTodos = await Todo.deleteMany({ project: req.params.id });
+
+    // Step 2: Delete the project itself
     const project = await Project.findOneAndDelete({
       _id: req.params.id,
-      owner: req.userId // Only the owner can delete the project
+      owner: req.userId, // Only the owner can delete the project
     });
 
-    if (!project) return res.status(404).json({ message: 'Project not found or access denied' });
-    res.json({ message: 'Project deleted' });
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found or access denied' });
+    }
+
+    res.json({ message: 'Project and associated todos deleted' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

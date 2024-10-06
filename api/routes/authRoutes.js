@@ -56,6 +56,7 @@ router.post('/login', async (req, res) => {
         id: user._id,           // User ID
         username: user.username, // User username
         email: user.email,      // User email
+        avatar: user.avatar
       },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }        // Token expiration time
@@ -90,7 +91,7 @@ router.get('/me', verifyToken, async (req, res) => {
 // Fetch user details by ID
 router.get('/:id', verifyToken, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('username email'); // Only get username and email
+    const user = await User.findById(req.params.id).select('username email avatar'); // Only get username and email
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
