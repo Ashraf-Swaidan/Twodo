@@ -10,7 +10,6 @@ import fs from 'fs';
 
 dotenv.config();
 const router = express.Router();
-const SECRET = process.env.JWT_SECRET;
 
 // Set storage engine
 const storage = multer.diskStorage({

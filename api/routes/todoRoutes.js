@@ -2,11 +2,27 @@ import express from 'express';
 import Todo from '../models/Todo.js';
 import Project from '../models/Project.js'; // Import Project model
 import { verifyToken } from '../middleware/authMiddleware.js';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+
 
 const router = express.Router();
 
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname); // Get the extension
+    const fileName = `${Date.now()}-${file.originalname}`; // original fileName already includes extension
+    cb(null, fileName);
+    
+  }
+});
 
-// Utility function to check if the user is authorized based on project ownership or editor role
+const upload = multer({ storage });
+
 const isUserAuthorizedForTodo = async (projectId, userId) => {
   const project = await Project.findById(projectId).select('owner collaborators');
   if (!project) return false;
@@ -162,27 +178,24 @@ router.delete('/:id', verifyToken, async (req, res) => {
   }
 });
 
-// comments route
-// Add a Comment to a Todo
-router.post('/:id/comments', verifyToken, async (req, res) => {
+// Add comment endpoint
+router.post('/:id/comments', verifyToken, upload.array('attachments', 5), async (req, res) => {
   try {
-    const { text } = req.body;
+    console.log(req.files); // Log to check
+    const text = req.body.text; // Get the comment text
+    const attachments = req.files?.map(file => ({
+      fileUrl: file.path,
+      fileName: file.originalname,
+      mimetype: file.mimetype // Capture the file's MIME type
+    })) || []; // Handle case with no files
+
     const todo = await Todo.findById(req.params.id);
-
     if (!todo) return res.status(404).json({ message: 'Todo not found' });
-
-    // Check if the user is authorized to add comments
-    if (todo.project) {
-      const isAuthorized = await isUserAuthorizedForTodo(todo.project, req.userId);
-      if (!isAuthorized) return res.status(403).json({ message: 'You are not authorized to add a comment to this todo' });
-    } else {
-      // If no project, ensure the user owns the todo
-      if (todo.user.toString() !== req.userId) return res.status(403).json({ message: 'You are not authorized to add a comment to this todo' });
-    }
 
     const newComment = {
       user: req.userId,
       text,
+      attachments
     };
 
     todo.comments.push(newComment);
@@ -193,6 +206,7 @@ router.post('/:id/comments', verifyToken, async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 // Get All Comments for a Todo
 router.get('/:id/comments', verifyToken, async (req, res) => {
@@ -216,7 +230,7 @@ router.get('/:id/comments', verifyToken, async (req, res) => {
   }
 });
 
-// Delete a Comment from a Todo
+// Delete a Comment from a Todo (with attachment file removal)
 router.delete('/:todoId/comments/:commentId', verifyToken, async (req, res) => {
   try {
     const { todoId, commentId } = req.params;
@@ -230,7 +244,6 @@ router.delete('/:todoId/comments/:commentId', verifyToken, async (req, res) => {
       const isAuthorized = await isUserAuthorizedForTodo(todo.project, req.userId);
       if (!isAuthorized) return res.status(403).json({ message: 'You are not authorized to delete a comment from this todo' });
     } else {
-      // If no project, ensure the user owns the todo
       if (todo.user.toString() !== req.userId) return res.status(403).json({ message: 'You are not authorized to delete a comment from this todo' });
     }
 
@@ -243,17 +256,29 @@ router.delete('/:todoId/comments/:commentId', verifyToken, async (req, res) => {
       return res.status(403).json({ message: 'You are not authorized to delete this comment.' });
     }
 
-    // Remove the comment from the array using pull
+    // Remove associated files if any
+    if (comment.attachments && comment.attachments.length > 0) {
+      comment.attachments.forEach(file => {
+        const filePath = path.resolve('uploads', path.basename(file.fileUrl)); // Use path.basename to get the file name correctly
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);  // Delete the file
+        }
+      });
+      
+    }
+
+    // Remove the comment from the array
     todo.comments.pull({ _id: commentId });
 
     // Save the Todo after removing the comment
     await todo.save();
 
-    res.json({ message: 'Comment deleted successfully' });
+    res.json({ message: 'Comment and its attachments deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 
 // Edit a Comment on a Todo

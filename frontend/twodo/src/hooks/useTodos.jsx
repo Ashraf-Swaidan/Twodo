@@ -73,21 +73,32 @@ export const useTodos = () => {
     }
   };
 
-  // Add a comment to a specific Todo
-  const addComment = async (todoId, commentData) => {
+  const addComment = async (todoId, commentData, files) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(`${API_URL}/${todoId}/comments`, commentData, {
+      const formData = new FormData();
+  
+      // Add comment text
+      formData.append('text', commentData.text);
+  
+      // Add files (if any)
+      if (files) {
+        files.forEach(file => formData.append('attachments', file));
+      }
+  
+      const response = await axios.post(`${API_URL}/${todoId}/comments`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data', // Important for file uploads
         },
       });
+  
       return response.data;
     } catch (error) {
       throw new Error(error.response.data.message);
     }
   };
-
+  
   // Edit a comment on a specific Todo
   const editComment = async (todoId, commentId, commentData) => {
     try {

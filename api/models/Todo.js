@@ -1,9 +1,10 @@
 import mongoose from 'mongoose';
 
 const CommentSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // User who made the comment
-  text: { type: String, required: true }, // Comment text
-  createdAt: { type: Date, default: Date.now }, // Timestamp for when the comment was made
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  text: { type: String },
+  createdAt: { type: Date, default: Date.now },
+  attachments: [{ fileUrl: String, fileName: String, mimetype: String, }] // File attachment info
 });
 
 const TodoSchema = new mongoose.Schema({
