@@ -18,14 +18,10 @@ function ProjectPage() {
   const { projects, updateProject, inviteCollaborator, deleteProject, removeCollaborator, updateCollaboratorRole } = useProjectsContext();
   const { addTodo, updateTodo, deleteTodo, fetchTodosByProject } = useTodos();
   const { user, getUserDetails } = useAuth();
-  console.log('rendered');
-  console.log(user);
   const [users, setUsers] = useState([]);
-  console.log(users);
   const [userRole, setUserRole] = useState("viewer");
-  console.log(userRole)
   const [todos, setTodos] = useState([]);
-  console.log(projects);
+  console.log(todos);
   const [filteredTodos, setFilteredTodos] = useState([]);
   const [error, setError] = useState("");
   const [selectedTodo, setSelectedTodo] = useState(null);
@@ -38,14 +34,13 @@ function ProjectPage() {
   const [availableTags, setAvailableTags] = useState([]);
   const [isTagDropdownVisible, setIsTagDropdownVisible] = useState(false);
 
-  const [isEditingTitle, setIsEditingTitle] = useState(false); // State for editing title
-  const [isEditingDescription, setIsEditingDescription] = useState(false); // State for editing description
-  const [newTitle, setNewTitle] = useState(""); // State for new title
-  const [newDescription, setNewDescription] = useState(""); // State for new description
-  const [isRescheduling, setIsRescheduling] = useState(false); // New state for rescheduling
+  const [isEditingTitle, setIsEditingTitle] = useState(false); 
+  const [isEditingDescription, setIsEditingDescription] = useState(false); 
+  const [newTitle, setNewTitle] = useState(""); 
+  const [newDescription, setNewDescription] = useState(""); 
+  const [isRescheduling, setIsRescheduling] = useState(false);
   const [isInviteDropdownVisible, setIsInviteDropdownVisible] = useState(false);
   const [emailToInvite, setEmailToInvite] = useState("");
-  console.log(emailToInvite, projectId);
 
   const project = projects.find((project) => project._id === projectId);
 

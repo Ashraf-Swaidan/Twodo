@@ -65,7 +65,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
             {/* Sidebar content */}
             <nav className="flex-1">
               <ul>
-                <li className={`mb-2 ${activeClass('/')}`}>
+                {/* <li className={`mb-2 ${activeClass('/')}`}>
                   <Link
                     to="/"
                     className={`flex items-center text-accent hover:bg-third rounded py-1 px-3 ${activeClass('/')}`}
@@ -73,7 +73,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
                     <FaHome className="mr-4" />
                     {isOpen && <span>Home</span>}
                   </Link>
-                </li>
+                </li> */}
                 <li className={`mb-4 ${activeClass('/todos')}`}>
                   <Link
                     to="/todos"

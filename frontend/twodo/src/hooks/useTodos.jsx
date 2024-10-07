@@ -73,5 +73,49 @@ export const useTodos = () => {
     }
   };
 
-  return { fetchTodos, addTodo, updateTodo, deleteTodo, fetchTodosByProject };
+  // Add a comment to a specific Todo
+  const addComment = async (todoId, commentData) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API_URL}/${todoId}/comments`, commentData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message);
+    }
+  };
+
+  // Edit a comment on a specific Todo
+  const editComment = async (todoId, commentId, commentData) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(`${API_URL}/${todoId}/comments/${commentId}`, commentData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message);
+    }
+  };
+
+  // Delete a comment from a specific Todo
+  const deleteComment = async (todoId, commentId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/${todoId}/comments/${commentId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (error) {
+      throw new Error(error.response.data.message);
+    }
+  };
+
+  return { fetchTodos, addTodo, updateTodo, deleteTodo, fetchTodosByProject, addComment, editComment, deleteComment };
 };

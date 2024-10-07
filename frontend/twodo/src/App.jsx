@@ -7,7 +7,7 @@ import ProjectPage from './pages/ProjectPage';
 import ProfilePage from './pages/ProfilePage';
 import MainLayout from './layout/MainLayout';
 import PrivateRoute from './components/PrivateRoute';
-import { AuthProvider } from './context/AuthContext';
+
 
 function App() {
   return (
