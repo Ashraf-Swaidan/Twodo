@@ -8,6 +8,7 @@ import { Dialog, DialogActions, DialogContent } from "@mui/material";
 import ProjectHeader from "../components/project/ProjectHeader";
 import TodoFilters from "../components/project/TodoFilters";
 import TodoList from "../components/project/TodoList";
+import DeleteTodoModal from "../components/todoModals/DeleteTodoModal";
 import { useNavigate } from "react-router-dom";
 import { useDisclosure } from "@nextui-org/react";
 import { CiSettings } from "react-icons/ci";
@@ -396,6 +397,7 @@ useEffect(() => {
 
     <div className="p-6 w-full lg:w-2/3 md:w-full ">
       <ProjectHeader
+        users={users}
         userRole={userRole}
         project={project}
         handleStartProject={handleStartProject}
@@ -471,29 +473,12 @@ useEffect(() => {
         onCreate={handleCreateTodo}
       />
 
-      <Dialog
-        open={isWarningModalOpen}
-        onClose={closeWarningModal}
-        aria-labelledby="delete-confirmation-dialog"
-      >
-        <DialogContent>
-          <p>Are you sure you want to delete this todo?</p>
-        </DialogContent>
-        <DialogActions>
-          <button
-            onClick={closeWarningModal}
-            className="px-2 py-1 text-white rounded bg-accent hover:bg-slate-600"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => handleDelete(selectedTodo._id)}
-            className="px-2 py-1 mr-2 text-white rounded bg-danger hover:bg-red-400"
-          >
-            Delete
-          </button>
-        </DialogActions>
-      </Dialog>
+    <DeleteTodoModal
+      isOpen={isWarningModalOpen}
+      onOpenChange={setIsWarningModalOpen}
+      onDelete={() => deleteTodo(selectedTodo._id)}
+    />
+
     </div>
         </>
   );

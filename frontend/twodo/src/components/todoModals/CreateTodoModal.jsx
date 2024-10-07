@@ -1,34 +1,30 @@
 import React, { useState } from "react";
-import { Dialog, DialogActions, DialogContent, TextField } from "@mui/material";
-import { DatePicker } from "@nextui-org/react";
-import { useProjectsContext } from "../../hooks/useProjects"; // Import the useProjects hook
-import CreateProjectModal from "./CreateProjectModal"; // Import the new project modal
-import "./CreateTodoModal.css"; // Import your CSS file
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, DatePicker } from "@nextui-org/react"; // Import NextUI modal components
+import { useProjectsContext } from "../../hooks/useProjects"; 
+import CreateProjectModal from "./CreateProjectModal"; 
+import { useAuth } from "../../context/AuthContext";
 
 const CreateTodoModal = ({ isOpen, onClose, onCreate }) => {
+  const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState(null);
   const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isFullScreen, setIsFullScreen] = useState(false);
   const [selectedProject, setSelectedProject] = useState("");
-  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false); // State for Project Modal
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
 
   const { projects } = useProjectsContext();
 
   const handleTitleChange = (e) => {
     const value = e.target.value;
     setTitle(value);
-
-    const newTags =
-      value.match(/@(\w+)/g)?.map((tag) => tag.substring(1)) || [];
+    const newTags = value.match(/@(\w+)/g)?.map((tag) => tag.substring(1)) || [];
     setTags(newTags);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (title.trim() === "") {
       alert("Title is required.");
       return;
@@ -36,10 +32,7 @@ const CreateTodoModal = ({ isOpen, onClose, onCreate }) => {
 
     setLoading(true);
 
-    const formattedDueDate = dueDate
-      ? new Date(dueDate.year, dueDate.month - 1, dueDate.day).toISOString()
-      : null;
-
+    const formattedDueDate = dueDate ? new Date(dueDate.year, dueDate.month - 1, dueDate.day).toISOString() : null;
     const cleanedTitle = title.replace(/@(\w+)/g, "").trim();
 
     const todoData = {
@@ -75,122 +68,103 @@ const CreateTodoModal = ({ isOpen, onClose, onCreate }) => {
   };
 
   return (
-    <Dialog
-      open={isOpen}
-      onClose={handleCancel}
-      fullWidth
-      maxWidth="sm"
-      fullScreen={isFullScreen}
-    >
-      <DialogContent sx={{ padding: 2 }}>
-        <form onSubmit={handleSubmit}>
-          <TextField
-            placeholder="Title; type @tag to tag your todo."
-            value={title}
-            onChange={handleTitleChange}
-            variant="filled"
-            fullWidth
-            required
-            sx={{
-              marginBottom: 0,
-              "& .MuiFilledInput-root": {
-                backgroundColor: "transparent",
-                border: "none",
-                "&:hover": { backgroundColor: "transparent" },
-                "&.Mui-focused": { backgroundColor: "transparent" },
-                "&:before, &:after": { display: "none" },
-              },
-            }}
-          />
-          <TextField
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            variant="filled"
-            fullWidth
-            multiline
-            rows={1}
-            sx={{
-              marginBottom: 2,
-              "& .MuiFilledInput-root": {
-                backgroundColor: "transparent",
-                border: "none",
-                "&:hover": { backgroundColor: "transparent" },
-                "&.Mui-focused": { backgroundColor: "transparent" },
-                "&:before, &:after": { display: "none" },
-              },
-            }}
-          />
+    <>
+      <Modal
+        isOpen={isOpen}
+        onOpenChange={onClose}
+        placement="auto"
+        fullWidth
+        size="xl"
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="text-xl font-semibold">Create Todo</ModalHeader>
+              <ModalBody>
+                <form onSubmit={handleSubmit}>
+                  <input
+                    type="text"
+                    placeholder="Title; type @tag to tag your todo."
+                    value={title}
+                    onChange={handleTitleChange}
+                    className="border-none outline-none p-2 w-full mb-2"
+                    required
+                  />
 
-          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 ">
-            <DatePicker
-              variant="bordered"
-              className="max-w-[204px] mr-2"
-              onChange={setDueDate}
-              value={dueDate}
-            />
+                  <textarea
+                    placeholder="Description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="border-none outline-none p-2 w-full mb-2"
+                    rows={1}
+                  ></textarea>
 
-            <select
-              id="project-select"
-              value={selectedProject}
-              onChange={(e) => setSelectedProject(e.target.value)}
-              className="px-2 py-1 mr-2 border-1 rounded "
-            >
-              <option value="">No Project</option>
-              {projects &&
-                projects.map((project) => (
-                  <option key={project._id} value={project._id}>
-                    {project.name}
-                  </option>
-                ))}
-            </select>
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0">
+                    <DatePicker
+                      variant="bordered"
+                      className="max-w-[204px] mr-2"
+                      onChange={setDueDate}
+                      value={dueDate}
+                    />
 
-            <button
-              type="button" // Ensure this is a button, not a submit
-              className="px-2 py-1 rounded border-1 text-accent"
-              onClick={() => setIsProjectModalOpen(true)} // Only opens the project modal
-            >
-              + Create new project
-            </button>
-          </div>
+                    <select
+                      value={selectedProject}
+                      onChange={(e) => setSelectedProject(e.target.value)}
+                      className="border rounded p-1 mr-2 w-40"
+                    >
+                      <option value="" disabled={!selectedProject}>
+                        {selectedProject ? "Change project" : "Select a project"}
+                      </option>
+                      <option value="">No Project</option>
+                      {projects.map((proj) => {
+                        const collaborator = proj.collaborators.find((collab) => collab.user === user.id);
+                        const isViewer = collaborator && collaborator.role === "viewer";
+                        return (
+                          <option key={proj._id} value={proj._id} disabled={isViewer}>
+                            {proj.name}
+                          </option>
+                        );
+                      })}
+                    </select>
 
-          <div className="flex items-center my-4 ml-1">
-            <span className="mr-2 text-md">Tags:</span>
-            {tags.map((tag, index) => (
-              <span
-                key={index}
-                className="inline-block px-3 py-1 mr-2 text-white bg-gray-600 rounded opacity-40"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
+                    <Button
+                      variant="flat"
+                      onClick={() => setIsProjectModalOpen(true)}
+                    >
+                      + Create new project
+                    </Button>
+                  </div>
 
-          <DialogActions>
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="px-4 py-1 text-gray-800 bg-gray-300 rounded hover:bg-gray-200 focus:outline-none"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-1 text-white bg-gray-500 rounded hover:bg-gray-600 focus:outline-none"
-              disabled={loading}
-            >
-              {loading ? "Creating..." : "Create Todo"}
-            </button>
-          </DialogActions>
-        </form>
-      </DialogContent>
+                  <div className="flex items-center my-4">
+                    <span className="mr-2">Tags:</span>
+                    {tags.map((tag, index) => (
+                      <span key={index} className="bg-gray-600 text-white px-2 py-1 rounded mr-2">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  <ModalFooter>
+                    <Button color="danger" variant="flat" onClick={handleCancel}>
+                      Cancel
+                    </Button>
+                    <Button color="default" type="submit" disabled={loading}>
+                      {loading ? "Creating..." : "Create Todo"}
+                    </Button>
+                  </ModalFooter>
+                </form>
+              </ModalBody>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
 
       {/* New Project Modal */}
       <CreateProjectModal
         isOpen={isProjectModalOpen}
         onClose={() => setIsProjectModalOpen(false)}
       />
-    </Dialog>
+    </>
   );
 };
 

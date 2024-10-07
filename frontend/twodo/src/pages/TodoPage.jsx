@@ -4,7 +4,7 @@ import { FaPlus, FaSearch } from "react-icons/fa";
 import CreateTodoModal from "../components/todoModals/CreateTodoModal";
 import TodoItem from "../components/todo/TodoItem";
 import { Checkbox, CheckboxGroup, Skeleton } from "@nextui-org/react";
-import { Dialog, DialogActions, DialogContent } from "@mui/material";
+import DeleteTodoModal from "../components/todoModals/DeleteTodoModal";
 
 function TodoPage() {
   const { fetchTodos, addTodo, updateTodo, deleteTodo } = useTodos();
@@ -96,7 +96,6 @@ function TodoPage() {
     try {
       await deleteTodo(id);
       setTodos((prevTodos) => prevTodos.filter((todo) => todo._id !== id));
-      closeSidebar();
       closeWarningModal();
     } catch (error) {
       setError(error.message);
@@ -286,29 +285,12 @@ function TodoPage() {
       />
 
       {/* Warning Confirmation Modal */}
-      <Dialog
-        open={isWarningModalOpen}
-        onClose={closeWarningModal}
-        aria-labelledby="delete-confirmation-dialog"
-      >
-        <DialogContent>
-          <p>Are you sure you want to delete this todo?</p>
-        </DialogContent>
-        <DialogActions>
-          <button
-            onClick={closeWarningModal}
-            className="px-2 py-1 text-white rounded bg-accent hover:bg-slate-600"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => handleDelete(selectedTodo._id)}
-            className="px-2 py-1 mr-2 text-white rounded bg-danger hover:bg-red-400"
-          >
-            Delete
-          </button>
-        </DialogActions>
-      </Dialog>
+      <DeleteTodoModal
+      isOpen={isWarningModalOpen}
+      onOpenChange={setIsWarningModalOpen}
+      onDelete={() => handleDelete(selectedTodo._id)}
+    />
+
     </div>
   );
 }

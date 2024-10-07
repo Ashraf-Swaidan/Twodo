@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Dialog, DialogActions, DialogContent, TextField } from '@mui/material';
-import { useProjectsContext } from '../../hooks/useProjects'; // Reuse the useProjects hook
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Textarea } from '@nextui-org/react';
+import { useProjectsContext } from '../../hooks/useProjects';
 
 const CreateProjectModal = ({ isOpen, onClose }) => {
   const [projectName, setProjectName] = useState('');
@@ -9,7 +9,6 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
   const { addProject } = useProjectsContext();
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
     setLoading(true);
 
     try {
@@ -25,53 +24,58 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <Dialog
-      open={isOpen}
-      onClose={onClose}
-      fullWidth
-      maxWidth="sm"
-    >
-      <DialogContent>
-        <form onSubmit={handleSubmit}>
-          <TextField
-            label="Project Name"
-            value={projectName}
-            onChange={(e) => setProjectName(e.target.value)}
-            variant="filled"
-            fullWidth
-            required
-            sx={{ marginBottom: 2 }}
-          />
-          <TextField
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            variant="filled"
-            fullWidth
-            multiline
-            rows={3}
-            sx={{ marginBottom: 2 }}
-          />
+    <Modal
+      isOpen={isOpen}
+      onOpenChange={onClose}
+      placement="auto"
 
-          <DialogActions>
-            <button 
-              type="button" 
-              onClick={onClose} 
-              className="px-4 py-1 text-gray-800 bg-gray-300 rounded hover:bg-gray-200 focus:outline-none"
-            >
-              Cancel
-            </button>
-            <button 
-              type="submit" 
-              className="px-4 py-1 text-white bg-gray-500 rounded hover:bg-gray-600 focus:outline-none"
-              disabled={loading}
-            >
-              {loading ? 'Creating...' : 'Create Project'}
-            </button>
-          </DialogActions>
-        </form>
-      </DialogContent>
-    </Dialog>
+    >
+      <ModalContent>
+        {(onClose) => (
+          <>
+            <ModalHeader className="flex flex-col gap-1">
+              Create New Project
+            </ModalHeader>
+            <ModalBody className="space-y-4">
+
+                <Input
+                  label="Project Name"
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                  placeholder="Enter project name"
+                  required
+                  fullWidth
+                />
+                <Textarea
+                  label="Description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Enter project description"
+                  rows={4}
+                  fullWidth
+                />
+              
+            </ModalBody>
+            <ModalFooter>
+              <Button
+                color="danger"
+                variant="flat"
+                onPress={onClose}
+              >
+                Cancel
+              </Button>
+              <Button
+                color="default"
+                onPress={handleSubmit}
+                disabled={loading}
+              >
+                {loading ? 'Creating...' : 'Create Project'}
+              </Button>
+            </ModalFooter>
+          </>
+        )}
+      </ModalContent>
+    </Modal>
   );
 };
 

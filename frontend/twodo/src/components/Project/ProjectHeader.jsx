@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Checkbox, DatePicker } from "@nextui-org/react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from "@nextui-org/react";
-
+import {Avatar, AvatarGroup} from "@nextui-org/react";
 const ProjectHeader = ({
+  users,
   userRole,
   project,
   handleStartProject,
@@ -27,6 +28,8 @@ const ProjectHeader = ({
   onOpenChange,
   handleDeleteProject,
 }) => {
+
+  console.log(users)
   return (
     <div className="">
       <div className="flex items-baseline">
@@ -50,12 +53,25 @@ const ProjectHeader = ({
               className="text-3xl font-bold border-none outline-none"
             />
           ) : (
+            <div className="flex space-y-4 flex-wrap sm:space-y-0 space-x-0 sm:space-x-3">
             <h1
               onClick={userRole === "Owner" ? handleTitleEdit : undefined}
               className="text-3xl font-bold cursor-pointer"
             >
               {project && project.name}
             </h1>
+
+            <AvatarGroup
+             isBordered
+             max={5}
+             >
+                {users.map((user) => (
+                  <Avatar src={`http://localhost:5000${user.avatar}`}
+                  alt={user.username} />
+                ))}
+            </AvatarGroup>
+              </div>
+
           )}
 
           <p className="mb-4 text-lg">
@@ -146,7 +162,7 @@ const ProjectHeader = ({
         </div>
       </div>
 
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} backdrop="blur">
         <ModalContent>
           {(onClose) => (
             <>

@@ -89,7 +89,7 @@ const TodoContent = ({todo, handleSubtaskToggle, project, isSubtasksVisible, use
       </div>
     </div>
     {isSubtasksVisible && (
-      <div className="ml-8 mt-2">
+      <div className="ml-8 mt-2 max-h-24 overflow-auto">
         <span className='text-md'>Subtasks:</span>
         {todo.subTasks.map((subtask) => (
           <div key={subtask._id} className="flex items-center">

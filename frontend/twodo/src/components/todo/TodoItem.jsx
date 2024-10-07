@@ -14,7 +14,6 @@ import CommentsList from "./CommentsList";
 import TodoContent from "./TodoContent";
 import "./Todo.css";
 
-
 const TodoItem = ({
   todo,
   toggleCompletion,
@@ -29,7 +28,6 @@ const TodoItem = ({
   console.log(user);
   const [selectedProject, setSelectedProject] = useState(todo.project);
   const [isCommenting, setIsCommenting] = useState(false);
-
 
   // State for editing
   const [isEditing, setIsEditing] = useState(false);
@@ -97,33 +95,36 @@ const TodoItem = ({
   const handleSave = async () => {
     try {
       const cleanedTitle = editedTodo.title.replace(/@(\w+)/g, "").trim();
-
+  
+      // Check if editedTodo.dueDate is a valid object or if it's unchanged
+      const formattedDueDate = editedTodo.dueDate && typeof editedTodo.dueDate === "object"
+        ? new Date(
+            editedTodo.dueDate.year,
+            editedTodo.dueDate.month - 1,
+            editedTodo.dueDate.day
+          ).toISOString()
+        : todo.dueDate; // fallback to original due date if no change
+  
       const formattedTodo = {
         ...editedTodo,
         title: cleanedTitle,
-        dueDate:
-          typeof editedTodo.dueDate === "object"
-            ? new Date(
-                editedTodo.dueDate.year,
-                editedTodo.dueDate.month - 1,
-                editedTodo.dueDate.day
-              ).toISOString()
-            : editedTodo.dueDate,
+        dueDate: formattedDueDate, // Use the formatted or original due date
         subTasks: editedSubtasks,
         project: selectedProject,
       };
-
+  
       const updatedTodo = await updateTodo(todo._id, formattedTodo);
-
+  
       setTodos((prevTodos) =>
         prevTodos.map((t) => (t._id === updatedTodo._id ? updatedTodo : t))
       );
-
+  
       setIsEditing(false);
     } catch (error) {
       console.error("Failed to update todo", error);
     }
   };
+  
 
   const handleCancel = () => {
     setIsEditing(false);
@@ -312,21 +313,33 @@ const TodoItem = ({
                   <select
                     value={selectedProject}
                     onChange={(e) => setSelectedProject(e.target.value)}
-                    className="border rounded p-1"
+                    className="border rounded p-1 w-40"
                   >
                     <option value="" disabled={!selectedProject}>
                       {selectedProject ? "Change project" : "Select a project"}
                     </option>
                     <option value="">No Project</option>
-                    {projects.map((proj) => (
-                      <option
-                        className="text-xs md:text-lg"
-                        key={proj._id}
-                        value={proj._id}
-                      >
-                        {proj.name}
-                      </option>
-                    ))}
+                    {projects.map((proj) => {
+                      // Find the collaborator matching the current user
+                      const collaborator = proj.collaborators.find(
+                        (collab) => collab.user === user.id
+                      );
+
+                      // Determine if the option should be disabled
+                      const isViewer =
+                        collaborator && collaborator.role === "viewer";
+
+                      return (
+                        <option
+                          className="text-xs md:text-lg"
+                          key={proj._id}
+                          value={proj._id}
+                          disabled={isViewer} // Disable if the user is a viewer
+                        >
+                          {proj.name}
+                        </option>
+                      );
+                    })}
                   </select>
 
                   <div className="space-x-2">
@@ -357,19 +370,19 @@ const TodoItem = ({
                 />
 
                 {isCommenting && (
-                 <CommentsList
-                 todo={todo}
-                 comments={comments}
-                 userDetails={userDetails}
-                 user={user}
-                 newComment={newComment}
-                 addComment={addComment}
-                 deleteComment={deleteComment}
-                 editComment={editComment}
-                 setNewComment={setNewComment}
-                 setComments={setComments}
-                 userRole={userRole}
-                 />
+                  <CommentsList
+                    todo={todo}
+                    comments={comments}
+                    userDetails={userDetails}
+                    user={user}
+                    newComment={newComment}
+                    addComment={addComment}
+                    deleteComment={deleteComment}
+                    editComment={editComment}
+                    setNewComment={setNewComment}
+                    setComments={setComments}
+                    userRole={userRole}
+                  />
                 )}
               </>
             )}
@@ -380,47 +393,45 @@ const TodoItem = ({
         {!isEditing && (
           <div className="flex items-center action-buttons ">
             <Tooltip content="Subtasks">
-            <button
-              className="ml-2 md:text-2xl sm:text-sm text-accent"
-              onClick={() => setSubtasksVisible(!isSubtasksVisible)}
-            >
-              <LuListTree />
-            </button>
-          </Tooltip>
-
-          <Tooltip content="Comments"> 
-            <button
-              onClick={() => setIsCommenting(!isCommenting)}
-              className="ml-2 md:text-2xl sm:text-sm text-accent"
-            >
-              <LuPen />
-            </button>
-          </Tooltip>
-            {userRole !== 'viewer' && (
-              <> 
-
-            <Tooltip content="Edit">
               <button
-              disabled={userRole === "viewer"}
-              onClick={() => setIsEditing(!isEditing)}
-              className="ml-2 md:text-2xl sm:text-sm text-accent"
-            >
-              <RiQuillPenLine />
-            </button>
+                className="ml-2 md:text-2xl sm:text-sm text-accent"
+                onClick={() => setSubtasksVisible(!isSubtasksVisible)}
+              >
+                <LuListTree />
+              </button>
             </Tooltip>
 
-            <Tooltip content="Delete" color="danger">
-            <button
-              disabled={userRole === "viewer"}
-              onClick={() => handleDelete(todo)}
-              className="ml-2 md:text-2xl sm:text-sm text-red-500"
-            >
-              <MdOutlineDeleteOutline />
-            </button>
+            <Tooltip content="Comments">
+              <button
+                onClick={() => setIsCommenting(!isCommenting)}
+                className="ml-2 md:text-2xl sm:text-sm text-accent"
+              >
+                <LuPen />
+              </button>
             </Tooltip>
-            </>
+            {userRole !== "viewer" && (
+              <>
+                <Tooltip content="Edit">
+                  <button
+                    disabled={userRole === "viewer"}
+                    onClick={() => setIsEditing(!isEditing)}
+                    className="ml-2 md:text-2xl sm:text-sm text-accent"
+                  >
+                    <RiQuillPenLine />
+                  </button>
+                </Tooltip>
+
+                <Tooltip content="Delete" color="danger">
+                  <button
+                    disabled={userRole === "viewer"}
+                    onClick={() => handleDelete(todo)}
+                    className="ml-2 md:text-2xl sm:text-sm text-red-500"
+                  >
+                    <MdOutlineDeleteOutline />
+                  </button>
+                </Tooltip>
+              </>
             )}
-            
           </div>
         )}
       </div>

@@ -74,7 +74,7 @@ const CommentsList = ({
     <>
       <hr className="mt-4" />
       {comments.length > 0 && (
-        <div className="ml-8">
+        <div className="ml-8 max-h-48 overflow-auto">
           <span className="text-sm sm:text-md">Comments:</span>
           <ul className="mt-2">
             {comments.map((comment, index) => (

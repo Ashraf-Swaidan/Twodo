@@ -9,7 +9,7 @@ const UserList = ({ users, userRole, handleRemoveCollaborator, handleUpdateColla
         {users.map((user) => (
           <li
             key={user._id}
-            className="flex items-center justify-between py-2 hover:bg-gray-100 transition duration-150 ease-in-out"
+            className="flex items-center justify-between py-2 transition duration-150 ease-in-out"
           >
             <div className="flex items-center space-x-3 mr-7">
               <Avatar
