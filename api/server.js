@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 5000;
 
 // Define allowed origins (your frontend URL)
 const allowedOrigins = [
-  'https://twodo-7vua5vwyl-ashs-projects-fcf7d57d.vercel.app', // Your frontend domain
+  'https://twodo.vercel.app', // Your frontend domain
   // Add any other domains that you want to allow
 ];
 
