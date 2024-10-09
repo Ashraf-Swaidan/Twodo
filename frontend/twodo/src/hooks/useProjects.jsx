@@ -16,7 +16,9 @@ export const ProjectsProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const API_URL = 'http://localhost:5000/api/projects';
+  const BASE_API_URL = import.meta.env.VITE_BASE_API_URL;
+
+const API_URL = `${BASE_API_URL}/projects`;
 
   const fetchProjects = async () => {
     if (!user) return; // Don't fetch if there's no user

@@ -2,7 +2,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/invitations';
+const BASE_API_URL = import.meta.env.VITE_BASE_API_URL;
+
+const API_URL = `${BASE_API_URL}/invitations`;
+
 
 const useInvitations = () => {
   const [invitationsToUser, setInvitationsToUser] = useState([]);

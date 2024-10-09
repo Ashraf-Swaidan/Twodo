@@ -1,8 +1,10 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 
-const API_URL = 'http://localhost:5000/api/auth';
+const BASE_API_URL = import.meta.env.VITE_BASE_API_URL;
+
+const API_URL = `${BASE_API_URL}/auth`;
+
 
 const AuthContext = createContext();
 
