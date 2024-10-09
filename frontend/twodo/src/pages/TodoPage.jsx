@@ -3,8 +3,9 @@ import { useTodos } from "../hooks/useTodos";
 import { FaPlus, FaSearch } from "react-icons/fa";
 import CreateTodoModal from "../components/todoModals/CreateTodoModal";
 import TodoItem from "../components/todo/TodoItem";
-import { Checkbox, CheckboxGroup, Skeleton } from "@nextui-org/react";
+import { Checkbox, CheckboxGroup, Skeleton, Button } from "@nextui-org/react";
 import DeleteTodoModal from "../components/todoModals/DeleteTodoModal";
+import Snackbar from "@mui/material/Snackbar";
 
 function TodoPage() {
   const { fetchTodos, addTodo, updateTodo, deleteTodo } = useTodos();
@@ -18,11 +19,13 @@ function TodoPage() {
   const [searchTerm, setSearchTerm] = useState("");
   console.log(todos);
   const [loading, setLoading] = useState(true);
-  const [showCompleted, setShowCompleted] = useState(true);
+  const [showCompleted, setShowCompleted] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
   const [availableTags, setAvailableTags] = useState([]);
   const [isTagDropdownVisible, setIsTagDropdownVisible] = useState(false);
-
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [lastCompletedTodo, setLastCompletedTodo] = useState(null);
+  const [fadingOutTodo, setFadingOutTodo] = useState(null);
   useEffect(() => {
     const getTodos = async () => {
       try {
@@ -72,20 +75,45 @@ function TodoPage() {
   };
 
   const toggleCompletion = async (id) => {
-    setTodos((prevTodos) =>
-      prevTodos.map((todo) =>
-        todo._id === id ? { ...todo, completed: !todo.completed } : todo
-      )
+    const updatedTodos = todos.map((todo) =>
+      todo._id === id ? { ...todo, completed: !todo.completed } : todo
     );
 
+    // Immediately filter out the completed todo
+    setTodos(updatedTodos);
+    filterAndSortTodos();
+
+    // Update the backend
     const updatedTodo = await updateTodo(id, {
       completed: !todos.find((todo) => todo._id === id).completed,
     });
-    setTodos((prevTodos) =>
-      prevTodos.map((todo) =>
-        todo._id === updatedTodo._id ? updatedTodo : todo
-      )
-    );
+
+    // Set last completed todo for potential undo
+    setLastCompletedTodo(updatedTodo);
+
+    // Show Snackbar for undo option
+    showSnackbarForUndo();
+  };
+
+  const showSnackbarForUndo = () => {
+    setSnackbarVisible(true);
+    setTimeout(() => setSnackbarVisible(false), 3000); // Auto-hide after 3 seconds
+  };
+
+  const handleUndo = async () => {
+    if (lastCompletedTodo) {
+      const updatedTodo = await updateTodo(lastCompletedTodo._id, {
+        completed: false,
+      });
+
+      // Revert the todo to non-completed and update the state
+      setTodos((prevTodos) =>
+        prevTodos.map((todo) =>
+          todo._id === updatedTodo._id ? updatedTodo : todo
+        )
+      );
+      setSnackbarVisible(false); // Hide snackbar after undo
+    }
   };
 
   const handleTaskSelection = (todo) => {
@@ -290,6 +318,18 @@ function TodoPage() {
       onOpenChange={setIsWarningModalOpen}
       onDelete={() => handleDelete(selectedTodo._id)}
     />
+
+      <Snackbar
+        open={snackbarVisible}
+        autoHideDuration={5000}
+        onClose={() => setSnackbarVisible(false)}
+        message="Todo marked as completed"
+        action={
+          <button className="px-3 py-1 bg-secondary text-accent rounded" onClick={handleUndo}>
+            UNDO
+          </button>
+        }
+      />
 
     </div>
   );

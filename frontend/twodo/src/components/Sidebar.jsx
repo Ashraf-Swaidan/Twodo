@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useProjectsContext } from "../hooks/useProjects";
-import { IoIosAdd } from "react-icons/io";
+import { MdUnarchive } from "react-icons/md";
 import {
   FaTasks,
   FaSignOutAlt,
@@ -82,16 +82,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
             {/* Sidebar content */}
             <nav className="flex-1">
               <ul>
-                {/* <li className={`mb-2 ${activeClass('/')}`}>
-                  <Link
-                    to="/"
-                    className={`flex items-center text-accent hover:bg-third rounded py-1 px-3 ${activeClass('/')}`}
-                  >
-                    <FaHome className="mr-4" />
-                    {isOpen && <span>Home</span>}
-                  </Link>
-                </li> */}
-                <li className={`mb-4 ${activeClass("/todos")}`}>
+                <li className={`mb-2 ${activeClass("/todos")}`}>
                   <Link
                     to="/todos"
                     className={`flex items-center text-accent hover:bg-third py-1 px-3 rounded ${activeClass(
@@ -100,6 +91,16 @@ function Sidebar({ isOpen, toggleSidebar }) {
                   >
                     <FaTasks className="mr-4" />
                     {isOpen && <span>Todos</span>}
+                  </Link>
+                </li>
+
+                <li className={`mb-4 ${activeClass('/')}`}>
+                  <Link
+                    to="/todos/archive"
+                    className={`flex items-center text-accent hover:bg-third rounded py-1 px-3 ${activeClass('/')}`}
+                  >
+                    <MdUnarchive  className="mr-4" />
+                    {isOpen && <span>Archive</span>}
                   </Link>
                 </li>
 

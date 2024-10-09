@@ -7,7 +7,7 @@ import ProjectPage from './pages/ProjectPage';
 import ProfilePage from './pages/ProfilePage';
 import MainLayout from './layout/MainLayout';
 import PrivateRoute from './components/PrivateRoute';
-
+import ArchivePage from './pages/ArchivePage';
 
 function App() {
   return (
@@ -36,6 +36,16 @@ function App() {
                 </PrivateRoute>
               }
             />
+
+            <Route
+              path='/todos/archive'
+              element={
+                <PrivateRoute>
+                  <ArchivePage />
+                </PrivateRoute>
+              }
+              />
+
             <Route
               path='/profile'
               element={
