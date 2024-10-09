@@ -4,24 +4,28 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import todoRoutes from './routes/todoRoutes.js';
 import authRoutes from './routes/authRoutes.js';
-import projectRoutes from './routes/projectRoutes.js';
-import invitationRoutes from './routes/invitationRoutes.js';
-import { verifyToken } from './middleware/authMiddleware.js'; // Import the middleware
-
+import projectRoutes from './routes/projectRoutes.js'
+import invitationRoutes from './routes/invitationRoutes.js'
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+
 // Middleware
-app.use(cors());
-app.options('*', cors()); // Handle preflight requests
+app.use(cors({
+  origin: ['https://twodo.vercel.app/login'], // Your frontend URL
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
 app.use(express.json());
-app.use('/api/todos', verifyToken, todoRoutes); // Protect this route
-app.use('/api/auth', authRoutes); // No auth middleware here for login
+app.use('/api/todos', todoRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/uploads', express.static('uploads'));
-app.use('/api/projects', verifyToken, projectRoutes); // Protect this route
-app.use('/api/invitations', verifyToken, invitationRoutes); // Protect this route
+app.use('/api/projects', projectRoutes);
+app.use('/api/invitations', invitationRoutes);
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
