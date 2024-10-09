@@ -1,6 +1,11 @@
 import jwt from 'jsonwebtoken';
 
 export const verifyToken = (req, res, next) => {
+  // Allow preflight requests without a token
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200); // Respond with 200 OK for preflight requests
+  }
+
   const token = req.headers['authorization']?.split(' ')[1]; // Get the token from the header
   if (!token) return res.status(403).json({ message: 'No token provided' });
 
