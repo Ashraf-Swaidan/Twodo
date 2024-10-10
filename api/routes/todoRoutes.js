@@ -5,22 +5,12 @@ import { verifyToken } from '../middleware/authMiddleware.js';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-
+import { bucket } from './firebaseConfig.js';  // Import Firebase Storage bucket
+import { v4 as uuidv4 } from 'uuid';
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname); // Get the extension
-    const fileName = `${Date.now()}-${file.originalname}`; // original fileName already includes extension
-    cb(null, fileName);
-    
-  }
-});
-
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 const isUserAuthorizedForTodo = async (projectId, userId) => {
@@ -178,19 +168,39 @@ router.delete('/:id', verifyToken, async (req, res) => {
   }
 });
 
-// Add comment endpoint
+// Upload comment with attachments (using Firebase)
 router.post('/:id/comments', verifyToken, upload.array('attachments', 5), async (req, res) => {
   try {
-    console.log(req.files); // Log to check
-    const text = req.body.text; // Get the comment text
-    const attachments = req.files?.map(file => ({
-      fileUrl: file.path,
-      fileName: file.originalname,
-      mimetype: file.mimetype // Capture the file's MIME type
-    })) || []; // Handle case with no files
-
+    const { text } = req.body;
     const todo = await Todo.findById(req.params.id);
     if (!todo) return res.status(404).json({ message: 'Todo not found' });
+
+    // Upload files to Firebase Storage and get their URLs
+    const attachments = [];
+
+    for (const file of req.files) {
+      const fileName = `${Date.now()}-${uuidv4()}${path.extname(file.originalname)}`;
+      const firebaseFile = bucket.file(fileName);
+
+      const stream = firebaseFile.createWriteStream({
+        metadata: {
+          contentType: file.mimetype,
+        },
+      });
+
+      await new Promise((resolve, reject) => {
+        stream.on('error', (error) => reject(error));
+        stream.on('finish', resolve);
+        stream.end(file.buffer);
+      });
+
+      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${firebaseFile.name}`;
+      attachments.push({
+        fileUrl: publicUrl,
+        fileName: file.originalname,
+        mimetype: file.mimetype,
+      });
+    }
 
     const newComment = {
       user: req.userId,
@@ -198,6 +208,7 @@ router.post('/:id/comments', verifyToken, upload.array('attachments', 5), async 
       attachments
     };
 
+    // Add the comment to the Todo's comments array
     todo.comments.push(newComment);
     await todo.save();
 
@@ -230,55 +241,45 @@ router.get('/:id/comments', verifyToken, async (req, res) => {
   }
 });
 
-// Delete a Comment from a Todo (with attachment file removal)
+// Delete comment (including removing attachments from Firebase)
 router.delete('/:todoId/comments/:commentId', verifyToken, async (req, res) => {
   try {
     const { todoId, commentId } = req.params;
-
-    // Find the Todo by ID
     const todo = await Todo.findById(todoId);
     if (!todo) return res.status(404).json({ message: 'Todo not found' });
 
-    // Check if the user is authorized to delete comments
+    // Check if user is authorized to delete the comment
     if (todo.project) {
       const isAuthorized = await isUserAuthorizedForTodo(todo.project, req.userId);
-      if (!isAuthorized) return res.status(403).json({ message: 'You are not authorized to delete a comment from this todo' });
+      if (!isAuthorized) return res.status(403).json({ message: 'You are not authorized to delete this comment' });
     } else {
-      if (todo.user.toString() !== req.userId) return res.status(403).json({ message: 'You are not authorized to delete a comment from this todo' });
+      if (todo.user.toString() !== req.userId) return res.status(403).json({ message: 'You are not authorized to delete this comment' });
     }
 
-    // Find the comment within the Todo's comments array
+    // Find the comment to delete
     const comment = todo.comments.id(commentId);
     if (!comment) return res.status(404).json({ message: 'Comment not found' });
 
     // Check if the comment belongs to the authenticated user
-    if (comment.user.toString() !== req.userId) {
-      return res.status(403).json({ message: 'You are not authorized to delete this comment.' });
+    if (comment.user.toString() !== req.userId) return res.status(403).json({ message: 'You are not authorized to delete this comment' });
+
+    // Remove files from Firebase Storage
+    if (comment.attachments.length > 0) {
+      for (const attachment of comment.attachments) {
+        const file = bucket.file(path.basename(attachment.fileUrl));
+        await file.delete();  // Delete the file from Firebase
+      }
     }
 
-    // Remove associated files if any
-    if (comment.attachments && comment.attachments.length > 0) {
-      comment.attachments.forEach(file => {
-        const filePath = path.resolve('uploads', path.basename(file.fileUrl)); // Use path.basename to get the file name correctly
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);  // Delete the file
-        }
-      });
-      
-    }
-
-    // Remove the comment from the array
+    // Remove the comment
     todo.comments.pull({ _id: commentId });
-
-    // Save the Todo after removing the comment
     await todo.save();
 
-    res.json({ message: 'Comment and its attachments deleted successfully' });
+    res.json({ message: 'Comment and attachments deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
-
 
 
 // Edit a Comment on a Todo

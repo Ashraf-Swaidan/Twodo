@@ -86,7 +86,7 @@ const ProfilePage = () => {
           className="object-cover"
           height={250}
           width={250}
-          src={`http://localhost:5000${user?.avatar}`} // User's avatar URL
+          src={user?.avatar} // User's avatar URL
         />
         <CardFooter className="justify-between before:bg-white/10 border-white/20 border-1 overflow-hidden py-2 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
           <p className="text-md text-white/90 font-semibold">{user?.username}</p>
@@ -159,7 +159,7 @@ const ProfilePage = () => {
                     <span>
                        Invited by:
                     </span>
-                    <Image width={25} height={25} src={`http://localhost:5000${invitation.invitedBy.avatar}`}/>
+                    <Image width={25} height={25} src={invitation.invitedBy.avatar}/>
                     <strong> {invitation.invitedBy.username}</strong>
                   </span> 
 

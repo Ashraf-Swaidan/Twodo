@@ -66,7 +66,7 @@ const ProjectHeader = ({
              max={5}
              >
                 {users.map((user) => (
-                  <Avatar src={`http://localhost:5000${user.avatar}`}
+                  <Avatar src={user.avatar}
                   alt={user.username} />
                 ))}
             </AvatarGroup>

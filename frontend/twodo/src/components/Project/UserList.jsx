@@ -13,7 +13,7 @@ const UserList = ({ users, userRole, handleRemoveCollaborator, handleUpdateColla
           >
             <div className="flex items-center space-x-3 mr-7">
               <Avatar
-                src={`http://localhost:5000${user.avatar}`}
+                src={user.avatar}
                 alt={user.username}
               />
               <span className="font-medium text-gray-900">{user.username}</span>
