@@ -7,26 +7,57 @@ import { verifyToken } from '../middleware/authMiddleware.js';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
+import { bucket } from './firebaseConfig.js';
+import { v4 as uuidv4 } from 'uuid';
 
 dotenv.config();
 const router = express.Router();
 
-// Set storage engine
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // Make sure 'uploads/' folder exists
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname)); // Appends the file extension to the filename
-  },
-});
+// Set multer to store files in memory temporarily
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
-// Initialize multer upload
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 1024 * 1024 * 5 }, // Limit file size to 5MB
-});
+// Upload avatar route
+router.post('/upload-avatar', verifyToken, upload.single('avatar'), async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
+    // Generate a unique filename
+    const fileName = `${Date.now()}-${uuidv4()}${path.extname(req.file.originalname)}`;
+    const file = bucket.file(fileName);
+
+    // Create a write stream to upload the file to Firebase Storage
+    const stream = file.createWriteStream({
+      metadata: {
+        contentType: req.file.mimetype,
+      },
+    });
+
+    // Handle errors during upload
+    stream.on('error', (error) => {
+      res.status(500).json({ message: error.message });
+    });
+
+    // When the upload finishes, update the user's avatar URL
+    stream.on('finish', async () => {
+      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${file.name}`;
+
+      // Optional: delete old avatar if necessary
+
+      // Update user's avatar field in the database
+      user.avatar = publicUrl;
+      await user.save();
+
+      res.json({ message: 'Avatar uploaded successfully', avatar: user.avatar });
+    });
+
+    // Upload the file buffer to Firebase
+    stream.end(req.file.buffer);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 // Register User
 router.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
@@ -100,29 +131,6 @@ router.get('/:id', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
     res.json(user);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-router.post('/upload-avatar', verifyToken, upload.single('avatar'), async (req, res) => {
-  try {
-    const user = await User.findById(req.userId);
-    if (!user) return res.status(404).json({ message: 'User not found' });
-
-    // Delete old avatar if exists
-    if (user.avatar) {
-      const oldAvatarPath = path.resolve('uploads', path.basename(user.avatar));
-      if (fs.existsSync(oldAvatarPath)) {
-        fs.unlinkSync(oldAvatarPath);
-      }
-    }
-
-    // Save new avatar path
-    user.avatar = `/uploads/${req.file.filename}`;
-    await user.save();
-
-    res.json({ message: 'Avatar uploaded successfully', avatar: user.avatar });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
