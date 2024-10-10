@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useProjectsContext } from "../hooks/useProjects";
 import { MdUnarchive } from "react-icons/md";
@@ -20,6 +20,12 @@ function Sidebar({ isOpen, toggleSidebar }) {
   const [isDropdownOpen, setDropdownOpen] = useState(false); // Dropdown state
   const { projects } = useProjectsContext();
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false); // Add this state
+
+  useEffect(() => {
+    if (!isOpen) {
+      setDropdownOpen(false); // Close dropdown if sidebar closes
+    }
+  }, [isOpen]);
 
   // Toggle dropdown
   const toggleDropdown = () => {
