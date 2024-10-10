@@ -58,18 +58,67 @@ router.post('/upload-avatar', verifyToken, upload.single('avatar'), async (req, 
     res.status(500).json({ message: error.message });
   }
 });
+
 // Register User
 router.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
+  
   try {
+    // Check if username already exists
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      return res.status(400).json({ message: 'Username is already taken' });
+    }
+
+    // Check if email already exists
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.status(400).json({ message: 'Email is already in use' });
+    }
+
+    // If username and email are unique, proceed with registration
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ username, email, password: hashedPassword });
+    
+    // Save the user in the database
     await user.save();
+
     res.status(201).json({ message: 'User registered successfully!' });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 });
+
+// Check availability of username or email
+router.get('/check-availability', async (req, res) => {
+  const { username, email } = req.query;
+  
+  try {
+    // Check if username is taken
+    if (username) {
+      const existingUsername = await User.findOne({ username });
+      if (existingUsername) {
+        return res.status(200).json({ available: false, field: 'username', message: 'Username is already taken' });
+      }
+    }
+
+    // Check if email is taken
+    if (email) {
+      const existingEmail = await User.findOne({ email });
+      if (existingEmail) {
+        return res.status(200).json({ available: false, field: 'email', message: 'Email is already in use' });
+      }
+    }
+
+    // If neither are taken, return available
+    return res.status(200).json({ available: true, message: 'Available' });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
 
 // Login User
 router.post('/login', async (req, res) => {

@@ -1,26 +1,34 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaEye } from "react-icons/fa";
-import { FaEyeSlash } from "react-icons/fa";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import Snackbar from '@mui/material/Snackbar';  // Import Snackbar from Material-UI
+import Alert from '@mui/material/Alert';  // Import Alert for a better styled notification
+
 function RegisterPage() {
   const { register } = useAuth();
   const [formData, setFormData] = useState({ username: '', email: '', password: '', confirmPassword: '' });
   const [error, setError] = useState('');
+  const [showSnackbar, setShowSnackbar] = useState(false); // State to control Snackbar visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Check if passwords match
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match.');
       return;
     }
-    
+
     try {
       await register(formData);
-      navigate('/login');
+      setShowSnackbar(true); // Show snackbar on success
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000); // Delay navigating to login page for 2 seconds so the snackbar can be seen
     } catch (err) {
       setError(err.message);
     }
@@ -30,8 +38,9 @@ function RegisterPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const handleCloseSnackbar = () => {
+    setShowSnackbar(false);
+  };
 
   return (
     <div className="flex flex-col lg:flex-row h-screen">
@@ -56,8 +65,7 @@ function RegisterPage() {
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
           <form onSubmit={handleSubmit} >
-            {/* Container for input fields with limited width */}
-            <div className="max-w-md mx-auto space-y-2"> {/* Limit width and center */}
+            <div className="max-w-md mx-auto space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Username</label>
                 <input
@@ -120,7 +128,7 @@ function RegisterPage() {
                     className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
-                    {showConfirmPassword ?<FaEye /> : <FaEyeSlash />}
+                    {showConfirmPassword ? <FaEye /> : <FaEyeSlash />}
                   </button>
                 </div>
               </div>
@@ -138,6 +146,18 @@ function RegisterPage() {
           </p>
         </div>
       </div>
+
+      {/* Snackbar for success message */}
+      <Snackbar
+        open={showSnackbar}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+          Registration successful! Redirecting to login...
+        </Alert>
+      </Snackbar>
     </div>
   );
 }
