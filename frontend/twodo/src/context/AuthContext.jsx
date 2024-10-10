@@ -41,6 +41,17 @@ useEffect(() => {
   }
 }, []);
 
+const checkAvailability = async (field, value) => {
+  try {
+    const response = await axios.get(`${API_URL}/check-availability`, {
+      params: { [field]: value },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to check availability');
+  }
+};
+
 // Inside login function
 const login = async (email, password) => {
   console.log("Login function called with:", email);
@@ -116,7 +127,7 @@ const login = async (email, password) => {
 };
 
   return (
-    <AuthContext.Provider value={{ user, register, login, logout, loading, uploadAvatar, getUserDetails }}>
+    <AuthContext.Provider value={{ user, register, login, logout, loading, uploadAvatar, getUserDetails, checkAvailability }}>
       {!loading && children}
     </AuthContext.Provider>
   );

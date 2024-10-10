@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -6,12 +6,13 @@ import Snackbar from '@mui/material/Snackbar';  // Import Snackbar from Material
 import Alert from '@mui/material/Alert';  // Import Alert for a better styled notification
 
 function RegisterPage() {
-  const { register } = useAuth();
+  const { register, checkAvailability } = useAuth();
   const [formData, setFormData] = useState({ username: '', email: '', password: '', confirmPassword: '' });
   const [error, setError] = useState('');
   const [showSnackbar, setShowSnackbar] = useState(false); // State to control Snackbar visibility
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [availability, setAvailability] = useState({ username: '', email: '' });
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -34,8 +35,24 @@ function RegisterPage() {
     }
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = async (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    if (name === 'username' || name === 'email') {
+      try {
+        const result = await checkAvailability(name, value);
+        setAvailability((prev) => ({
+          ...prev,
+          [name]: result.available ? 'Available' : result.message, // Assumes the result has an 'available' property
+        }));
+      } catch (error) {
+        setAvailability((prev) => ({
+          ...prev,
+          [name]: 'Error checking availability',
+        }));
+      }
+    }
   };
 
   const handleCloseSnackbar = () => {
@@ -64,7 +81,7 @@ function RegisterPage() {
           <p className="text-center text-gray-600">Create your account here</p>
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
-          <form onSubmit={handleSubmit} >
+          <form onSubmit={handleSubmit}>
             <div className="max-w-md mx-auto space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Username</label>
@@ -77,6 +94,11 @@ function RegisterPage() {
                   onChange={handleChange}
                   required
                 />
+                {availability.username && (
+                  <p className={`text-sm ${availability.username === 'Available' ? 'text-green-500' : 'text-red-500'}`}>
+                    {availability.username}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Email</label>
@@ -89,6 +111,11 @@ function RegisterPage() {
                   onChange={handleChange}
                   required
                 />
+                {availability.email && (
+                  <p className={`text-sm ${availability.email === 'Available' ? 'text-green-500' : 'text-red-500'}`}>
+                    {availability.email}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Password</label>
