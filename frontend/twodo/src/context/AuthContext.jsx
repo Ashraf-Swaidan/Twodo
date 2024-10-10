@@ -41,9 +41,11 @@ useEffect(() => {
   }
 }, []);
 
-// Inside login function
+// Login function
 const login = async (email, password) => {
   console.log("Login function called with:", email);
+  setLoading(true); // Start loading
+
   try {
     const response = await axios.post(`${API_URL}/login`, { email, password });
     console.log("Login response:", response);
@@ -52,13 +54,14 @@ const login = async (email, password) => {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     setUser(response.data.user);
     console.log("User state set:", response.data.user);
-    
   } catch (error) {
     console.error("Login error:", error);
     if (error.response && error.response.status === 401) {
       throw new Error('Invalid credentials');
     }
     throw new Error('An error occurred while logging in. Please try again.');
+  } finally {
+    setLoading(false); // Stop loading regardless of success or error
   }
 };
 
