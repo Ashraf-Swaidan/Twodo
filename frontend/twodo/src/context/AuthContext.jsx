@@ -104,7 +104,7 @@ const login = async (email, password) => {
    const getUserDetails = async (userId) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.get(`http://localhost:5000/api/auth/${userId}`, {
+    const response = await axios.get(`${API_URL}/${userId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

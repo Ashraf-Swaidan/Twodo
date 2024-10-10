@@ -83,7 +83,7 @@ const CommentsList = ({
 
   const renderAttachments = (attachments) => {
     return attachments.map((file, index) => {
-      const fileUrl = `http://localhost:5000/${file.fileUrl || file.path}`;
+      const fileUrl = file.fileUrl || file.path;
       const fileType = file.mimetype?.split("/")[0];
 
       if (fileType === "image") {
@@ -121,7 +121,7 @@ const CommentsList = ({
             {comments.map((comment, index) => (
               <li key={comment._id} className="flex items-start border-b pb-2 mb-2">
                 <Avatar
-                  src={`http://localhost:5000${userDetails[index]?.avatar}`}
+                  src={userDetails[index]?.avatar}
                   alt={`${userDetails[index]?.username}'s avatar`}
                   className="mr-2"
                 />
