@@ -6,6 +6,7 @@ import TodoItem from "../components/todo/TodoItem";
 import { Checkbox, CheckboxGroup, Skeleton, Button } from "@nextui-org/react";
 import DeleteTodoModal from "../components/todoModals/DeleteTodoModal";
 import Snackbar from "@mui/material/Snackbar";
+import { MdEmojiEmotions } from "react-icons/md"; 
 
 function TodoPage() {
   const { fetchTodos, addTodo, updateTodo, deleteTodo } = useTodos();
@@ -268,6 +269,15 @@ function TodoPage() {
       </span>
       <span className="font-semibold">Add new task</span>
     </li>
+
+    {filteredTodos.length === 0 && !loading && (
+  <div className="flex flex-col items-center justify-center mt-2">
+  <MdEmojiEmotions size={50} className="text-yellow-400 my-2" />
+  <p className="text-lg font-semibold text-gray-500">All caught up!</p>
+  <p className="text-sm text-gray-400">No tasks for now. Enjoy your free time! 🎉</p>
+</div>
+)}
+
 
     {loading
       ? Array.from({ length: 3 }).map((_, index) => (

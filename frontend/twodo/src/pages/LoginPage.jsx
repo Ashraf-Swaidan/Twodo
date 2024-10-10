@@ -44,7 +44,7 @@ function LoginPage() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-2">
         <div className="w-full p-8 space-y-4">
           <div className="flex items-center justify-center space-x-4">
-            <h1 className="text-5xl sm:text-8xl font-extrabold text-gray-800">Twodo</h1>
+            <h1 className="text-5xl sm:text-8xl  md:text-6xl xl:text-8xl font-extrabold text-gray-800">Twodo</h1>
             <div className="border-l-2 border-gray-800 h-14 mx-2"></div>
             <p className="text-md sm:text-2xl font-bold text-gray-800">Wave your life into a flow</p>
           </div>

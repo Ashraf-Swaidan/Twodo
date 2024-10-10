@@ -3,8 +3,10 @@ import { AiOutlineFundProjectionScreen } from "react-icons/ai";
 import { Link } from "react-router-dom";
 import { LuListTree } from "react-icons/lu";
 import { Checkbox } from "@nextui-org/react";
-
-const TodoContent = ({todo, handleSubtaskToggle, project, isSubtasksVisible, userRole}) => {
+import { IoIosAddCircle } from "react-icons/io";
+const TodoContent = ({todo, handleSubtaskToggle, project, isSubtasksVisible, userRole, handleAddSubtask,
+  newSubtask,
+  setNewSubtask}) => {
 
     const getDueDateLabel = (dueDate) => {
         if (!dueDate) return null;
@@ -113,6 +115,22 @@ const TodoContent = ({todo, handleSubtaskToggle, project, isSubtasksVisible, use
             </span>
           </div>
         ))}
+        <div className="flex items-center mt-2">
+                    <input
+                      type="text"
+                      placeholder="Add New Subtask"
+                      value={newSubtask}
+                      onChange={(e) => setNewSubtask(e.target.value)}
+                      className="text-xs sm:text-lg border-0 outline-none rounded p-1 "
+                    />
+
+                    <button
+                      className="text-xs sm:text-lg hover:text-accent"
+                      onClick={handleAddSubtask}
+                    >
+                      <IoIosAddCircle />
+                    </button>
+                  </div>
       </div>
     )}
 

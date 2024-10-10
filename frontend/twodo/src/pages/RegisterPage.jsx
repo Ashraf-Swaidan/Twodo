@@ -1,15 +1,23 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-
+import { FaEye } from "react-icons/fa";
+import { FaEyeSlash } from "react-icons/fa";
 function RegisterPage() {
   const { register } = useAuth();
-  const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+  const [formData, setFormData] = useState({ username: '', email: '', password: '', confirmPassword: '' });
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check if passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    
     try {
       await register(formData);
       navigate('/login');
@@ -22,8 +30,11 @@ function RegisterPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-gray-100">
+    <div className="flex flex-col lg:flex-row h-screen">
       {/* Left Side: Artwork/Image */}
       <div className="w-full lg:w-1/2 p-5 flex items-center justify-center">
         <img 
@@ -34,52 +45,89 @@ function RegisterPage() {
       </div>
 
       {/* Right Side: Register Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-5">
-        <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-xl">
-          <h1 className="text-5xl font-extrabold text-center text-gray-900">Create Account</h1>
-          <p className="text-lg text-center text-gray-500">Join us and start your journey!</p>
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-2">
+        <div className="w-full p-8 space-y-2">
+          <div className="flex items-center justify-center space-x-4">
+            <h1 className="text-5xl sm:text-8xl md:text-6xl xl:text-8xl font-extrabold text-gray-800">Twodo</h1>
+            <div className="border-l-2 border-gray-800 h-14 mx-2"></div>
+            <p className="text-md sm:text-2xl font-bold text-gray-800">Wave your life into a flow</p>
+          </div>
+          <p className="text-center text-gray-600">Create your account here</p>
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
-          {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700">Username</label>
-              <input
-                type="text"
-                name="username"
-                placeholder="Enter your username"
-                className="block w-full px-4 py-2 mt-1 text-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={formData.username}
-                onChange={handleChange}
-                required
-              />
+          <form onSubmit={handleSubmit} >
+            {/* Container for input fields with limited width */}
+            <div className="max-w-md mx-auto space-y-2"> {/* Limit width and center */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Username</label>
+                <input
+                  type="text"
+                  name="username"
+                  placeholder="Enter your username"
+                  className="block w-full px-4 py-2 mt-1 text-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={formData.username}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Enter your email"
+                  className="block w-full px-4 py-2 mt-1 text-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Password</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    placeholder="Enter your password"
+                    className="block w-full px-4 py-2 mt-1 text-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <FaEye /> : <FaEyeSlash />}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    placeholder="Confirm your password"
+                    className="block w-full px-4 py-2 mt-1 text-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ?<FaEye /> : <FaEyeSlash />}
+                  </button>
+                </div>
+              </div>
+              <button type="submit" className="w-full py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition">
+                Register
+              </button>
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700">Email</label>
-              <input
-                type="email"
-                name="email"
-                placeholder="Enter your email"
-                className="block w-full px-4 py-2 mt-1 text-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700">Password</label>
-              <input
-                type="password"
-                name="password"
-                placeholder="Enter your password"
-                className="block w-full px-4 py-2 mt-1 text-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <button type="submit" className="w-full py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition">
-              Register
-            </button>
           </form>
 
           <p className="text-center text-gray-500 text-sm">

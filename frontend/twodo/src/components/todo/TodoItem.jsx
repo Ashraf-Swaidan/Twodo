@@ -169,21 +169,39 @@ const TodoItem = ({
     setEditedSubtasks(updatedSubtasks);
   };
 
-  const handleAddSubtask = () => {
+  const handleAddSubtask = async () => {
     if (newSubtask.trim()) {
-      // Ensure the input is not empty
       const newSubtaskObj = {
         title: newSubtask,
-        completed: false, // Default to not completed
+        completed: false, // New subtasks start as not completed
       };
-
-      // Update your editedSubtasks state
-      setEditedSubtasks((prev) => [...prev, newSubtaskObj]);
-
-      // Clear the input field
-      setNewSubtask("");
+  
+      // Add the new subtask to the local state
+      const updatedSubtasks = [...todo.subTasks, newSubtaskObj];
+  
+      // Update the todo object locally
+      const updatedTodo = {
+        ...todo,
+        subTasks: updatedSubtasks,
+      };
+  
+      try {
+        // Update the todo in the backend
+        const result = await updateTodo(todo._id, updatedTodo);
+  
+        // If successful, update the state to reflect the change
+        setTodos((prevTodos) =>
+          prevTodos.map((t) => (t._id === result._id ? result : t))
+        );
+  
+        // Clear the new subtask input field
+        setNewSubtask("");
+      } catch (error) {
+        console.error("Failed to add subtask", error);
+      }
     }
   };
+  
 
   const handleSubtaskDelete = (subtaskId) => {
     setEditedSubtasks((prev) =>
@@ -290,22 +308,7 @@ const TodoItem = ({
                     </div>
                   ))}
 
-                  <div className="flex items-center mt-2">
-                    <input
-                      type="text"
-                      placeholder="Add New Subtask"
-                      value={newSubtask}
-                      onChange={(e) => setNewSubtask(e.target.value)}
-                      className="text-xs sm:text-lg border-0 outline-none rounded p-1 "
-                    />
-
-                    <button
-                      className="text-xs sm:text-lg hover:text-accent"
-                      onClick={handleAddSubtask}
-                    >
-                      <IoIosAddCircle />
-                    </button>
-                  </div>
+                  
                 </div>
                 <hr />
 
@@ -367,6 +370,9 @@ const TodoItem = ({
                   project={project}
                   isSubtasksVisible={isSubtasksVisible}
                   userRole={userRole}
+                  newSubtask={newSubtask}
+                    setNewSubtask={setNewSubtask}
+                    handleAddSubtask={handleAddSubtask}
                 />
 
                 {isCommenting && (
