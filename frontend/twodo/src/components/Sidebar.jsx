@@ -57,7 +57,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
                 {/* MUI Avatar */}
                 <Avatar
                   alt={user?.username}
-                  src={`http://localhost:5000${user?.avatar}`}
+                  src={user?.avatar}
                   className="mr-3"
                   sx={{ width: 30, height: 30 }}
                 />
