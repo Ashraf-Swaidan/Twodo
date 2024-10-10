@@ -3,6 +3,7 @@ import fs from 'fs';
 
 // Path to the Firebase secret file from Render's secret management
 const serviceAccountPath = process.env.RENDER_SECRET_FILE_FirebaseServiceAccountKey;
+console.log('Service Account Path:', process.env.RENDER_SECRET_FILE_FirebaseServiceAccountKey);
 
 // Read the Firebase service account key from the file
 const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
