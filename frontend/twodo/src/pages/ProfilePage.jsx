@@ -24,7 +24,6 @@ const ProfilePage = () => {
     fetchInvitationsByUser();
   }, []);
 
-  console.log(invitationsToUser, invitationsByUser)
 
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);

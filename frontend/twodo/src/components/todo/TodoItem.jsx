@@ -25,7 +25,6 @@ const TodoItem = ({
   const { projects } = useProjectsContext();
   const { updateTodo, addComment, editComment, deleteComment } = useTodos();
   const { user, getUserDetails } = useAuth();
-  console.log(user);
   const [selectedProject, setSelectedProject] = useState(todo.project);
   const [isCommenting, setIsCommenting] = useState(false);
 
@@ -40,7 +39,6 @@ const TodoItem = ({
   const [editedSubtasks, setEditedSubtasks] = useState(todo.subTasks);
   const [newSubtask, setNewSubtask] = useState("");
   const [comments, setComments] = useState(todo.comments || []);
-  console.log(comments);
   const [newComment, setNewComment] = useState("");
   const [userDetails, setUserDetails] = useState({});
 

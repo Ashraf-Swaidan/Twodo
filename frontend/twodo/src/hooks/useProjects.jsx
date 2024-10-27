@@ -95,8 +95,6 @@ const API_URL = `${BASE_API_URL}/projects`;
 
   const inviteCollaborator = async (projectId, email) => {
     try {
-      console.log('Invite Collab function called')
-      console.log(projectId, email)
       const token = localStorage.getItem('token');
       await axios.post(`${API_URL}/${projectId}/invite`, { email }, {
         headers: {
@@ -104,7 +102,6 @@ const API_URL = `${BASE_API_URL}/projects`;
         },
       });
 
-      console.log('User Invited Successfully')
       // No need to refetch projects since an invitation was sent, not an actual addition
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to send invitation');

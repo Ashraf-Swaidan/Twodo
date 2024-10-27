@@ -21,7 +21,6 @@ function ProjectPage() {
   const [users, setUsers] = useState([]);
   const [userRole, setUserRole] = useState("viewer");
   const [todos, setTodos] = useState([]);
-  console.log(todos);
   const [filteredTodos, setFilteredTodos] = useState([]);
   const [error, setError] = useState("");
   const [selectedTodo, setSelectedTodo] = useState(null);
@@ -49,7 +48,6 @@ function ProjectPage() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false); 
   const navigate = useNavigate(); 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  console.log(project)
 
   useEffect(() => {
     const getTodos = async () => {
@@ -80,26 +78,17 @@ function ProjectPage() {
   }, [todos, projectId]);
 
   useEffect(() => {
-    console.log('function called ')
     if (project && user) {
-      console.log('entered the condition')
-      console.log(user)
-      console.log(project.owner)
       // Step 1: Check if the current user is the owner of the project
       if (user.id === project.owner) {
-        console.log('set user as owner')
         setUserRole("Owner");
       } else {
         // Step 2: Map through collaborators to check if the user is a collaborator and assign their role
-        console.log('entered sub else')
-        console.log('set user as his role')
         const matchingCollaborator = project.collaborators.find(collaborator => collaborator.user === user.id);
         
         if (matchingCollaborator) {
-          console.log(`set user as his role: ${matchingCollaborator.role}`)
           setUserRole(matchingCollaborator.role);
         } else {
-          console.log('entered the else')
           setUserRole("viewer");  // Default role
         }
       }

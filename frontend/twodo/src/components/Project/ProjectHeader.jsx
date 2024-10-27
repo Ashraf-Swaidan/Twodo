@@ -29,7 +29,6 @@ const ProjectHeader = ({
   handleDeleteProject,
 }) => {
 
-  console.log(users)
   return (
     <div className="">
       <div className="flex items-baseline">

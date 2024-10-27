@@ -11,14 +11,12 @@ import { MdEmojiEmotions } from "react-icons/md";
 function TodoPage() {
   const { fetchTodos, addTodo, updateTodo, deleteTodo } = useTodos();
   const [todos, setTodos] = useState([]);
-  console.log(todos);
   const [filteredTodos, setFilteredTodos] = useState([]);
   const [error, setError] = useState("");
   const [selectedTodo, setSelectedTodo] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  console.log(todos);
   const [loading, setLoading] = useState(true);
   const [showCompleted, setShowCompleted] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);

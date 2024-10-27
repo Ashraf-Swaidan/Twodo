@@ -12,20 +12,16 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  console.log(user);
   const [loading, setLoading] = useState(true);
 
 
 // Inside AuthProvider
 useEffect(() => {
-  console.log("Checking token on mount");
   const token = localStorage.getItem('token');
   if (token) {
-    console.log("Token found:", token);
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     axios.get(`${API_URL}/me`)
       .then(response => {
-        console.log("User data fetched:", response.data);
         setUser(response.data);
       })
       .catch((err) => {
@@ -54,15 +50,12 @@ const checkAvailability = async (field, value) => {
 
 // Inside login function
 const login = async (email, password) => {
-  console.log("Login function called with:", email);
   try {
     const response = await axios.post(`${API_URL}/login`, { email, password });
-    console.log("Login response:", response);
     const token = response.data.token;
     localStorage.setItem('token', token);
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     setUser(response.data.user);
-    console.log("User state set:", response.data.user);
     
   } catch (error) {
     console.error("Login error:", error);
