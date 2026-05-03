@@ -7,6 +7,7 @@ import path from 'path';
 import fs from 'fs';
 import { bucket } from './firebaseConfig.js';  // Import Firebase Storage bucket
 import { v4 as uuidv4 } from 'uuid';
+import { gcsFileToReadableUrl, gcsObjectNameFromFileUrl } from '../utils/gcsPublicUrl.js';
 
 const router = express.Router();
 
@@ -178,7 +179,7 @@ router.post('/:id/comments', verifyToken, upload.array('attachments', 5), async 
     // Upload files to Firebase Storage and get their URLs
     const attachments = [];
 
-    for (const file of req.files) {
+    for (const file of req.files ?? []) {
       const fileName = `${Date.now()}-${uuidv4()}${path.extname(file.originalname)}`;
       const firebaseFile = bucket.file(fileName);
 
@@ -194,7 +195,7 @@ router.post('/:id/comments', verifyToken, upload.array('attachments', 5), async 
         stream.end(file.buffer);
       });
 
-      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${firebaseFile.name}`;
+      const publicUrl = await gcsFileToReadableUrl(firebaseFile);
       attachments.push({
         fileUrl: publicUrl,
         fileName: file.originalname,
@@ -266,8 +267,9 @@ router.delete('/:todoId/comments/:commentId', verifyToken, async (req, res) => {
     // Remove files from Firebase Storage
     if (comment.attachments.length > 0) {
       for (const attachment of comment.attachments) {
-        const file = bucket.file(path.basename(attachment.fileUrl));
-        await file.delete();  // Delete the file from Firebase
+        const objectName = gcsObjectNameFromFileUrl(attachment.fileUrl, bucket.name);
+        const file = bucket.file(objectName);
+        await file.delete();
       }
     }
 

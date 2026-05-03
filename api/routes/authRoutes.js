@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import { bucket } from './firebaseConfig.js';
+import { gcsFileToReadableUrl } from '../utils/gcsPublicUrl.js';
 import { v4 as uuidv4 } from 'uuid';
 
 dotenv.config();
@@ -41,7 +42,7 @@ router.post('/upload-avatar', verifyToken, upload.single('avatar'), async (req, 
 
     // When the upload finishes, update the user's avatar URL
     stream.on('finish', async () => {
-      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${file.name}`;
+      const publicUrl = await gcsFileToReadableUrl(file);
 
       // Optional: delete old avatar if necessary
 

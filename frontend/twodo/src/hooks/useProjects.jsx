@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { API_ROOT } from '../apiBase';
 
 const ProjectsContext = createContext();
 
@@ -16,9 +17,7 @@ export const ProjectsProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const BASE_API_URL = import.meta.env.VITE_BASE_API_URL;
-
-const API_URL = `${BASE_API_URL}/projects`;
+  const API_URL = `${API_ROOT}/projects`;
 
   const fetchProjects = async () => {
     if (!user) return; // Don't fetch if there's no user
@@ -139,7 +138,7 @@ const API_URL = `${BASE_API_URL}/projects`;
   const acceptInvitation = async (invitationId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:5000/api/invitations/accept/${invitationId}`, {}, {
+      await axios.post(`${API_ROOT}/invitations/accept/${invitationId}`, {}, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -153,7 +152,7 @@ const API_URL = `${BASE_API_URL}/projects`;
   const rejectInvitation = async (invitationId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:5000/api/invitations/reject/${invitationId}`, {}, {
+      await axios.post(`${API_ROOT}/invitations/reject/${invitationId}`, {}, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

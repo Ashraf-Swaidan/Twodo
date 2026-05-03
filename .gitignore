@@ -130,3 +130,4 @@ dist
 .pnp.*
 
 api/firebaseServiceAccountKey.json
+api/service-key.json

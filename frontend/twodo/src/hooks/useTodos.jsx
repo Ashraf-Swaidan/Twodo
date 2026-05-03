@@ -1,7 +1,7 @@
 import axios from 'axios';
-const BASE_API_URL = import.meta.env.VITE_BASE_API_URL;
+import { API_ROOT } from '../apiBase';
 
-const API_URL = `${BASE_API_URL}/todos`;
+const API_URL = `${API_ROOT}/todos`;
 
 
 export const useTodos = () => {
@@ -91,7 +91,6 @@ export const useTodos = () => {
       const response = await axios.post(`${API_URL}/${todoId}/comments`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data', // Important for file uploads
         },
       });
   

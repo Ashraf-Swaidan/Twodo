@@ -1,12 +1,11 @@
+import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 import cors from 'cors';
 import todoRoutes from './routes/todoRoutes.js';
 import authRoutes from './routes/authRoutes.js';
-import projectRoutes from './routes/projectRoutes.js'
-import invitationRoutes from './routes/invitationRoutes.js'
-dotenv.config();
+import projectRoutes from './routes/projectRoutes.js';
+import invitationRoutes from './routes/invitationRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;

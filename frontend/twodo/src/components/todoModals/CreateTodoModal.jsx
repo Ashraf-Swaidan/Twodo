@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, DatePicker } from "@nextui-org/react"; // Import NextUI modal components
+import { today, getLocalTimeZone } from "@internationalized/date";
 import { useProjectsContext } from "../../hooks/useProjects"; 
 import CreateProjectModal from "./CreateProjectModal"; 
 import { useAuth } from "../../context/AuthContext";
@@ -8,7 +9,7 @@ const CreateTodoModal = ({ isOpen, onClose, onCreate }) => {
   const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [dueDate, setDueDate] = useState(null);
+  const [dueDate, setDueDate] = useState(() => today(getLocalTimeZone()));
   const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedProject, setSelectedProject] = useState("");
@@ -40,7 +41,7 @@ const CreateTodoModal = ({ isOpen, onClose, onCreate }) => {
       description,
       dueDate: formattedDueDate,
       tags,
-      project: selectedProject || null,
+      project: selectedProject ? selectedProject : null,
     };
 
     try {
@@ -57,7 +58,7 @@ const CreateTodoModal = ({ isOpen, onClose, onCreate }) => {
   const resetFields = () => {
     setTitle("");
     setDescription("");
-    setDueDate(null);
+    setDueDate(today(getLocalTimeZone()));
     setTags([]);
     setSelectedProject("");
   };
@@ -112,10 +113,7 @@ const CreateTodoModal = ({ isOpen, onClose, onCreate }) => {
                       onChange={(e) => setSelectedProject(e.target.value)}
                       className="border rounded p-1 mr-2 w-40"
                     >
-                      <option value="" disabled={!selectedProject}>
-                        {selectedProject ? "Change project" : "Select a project"}
-                      </option>
-                      <option value="">No Project</option>
+                      <option value="">No project</option>
                       {projects.map((proj) => {
                         const collaborator = proj.collaborators.find((collab) => collab.user === user.id);
                         const isViewer = collaborator && collaborator.role === "viewer";

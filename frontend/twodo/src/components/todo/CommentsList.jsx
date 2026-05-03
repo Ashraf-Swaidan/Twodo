@@ -85,8 +85,11 @@ const CommentsList = ({
     return attachments.map((file, index) => {
       const fileUrl = file.fileUrl || file.path;
       const fileType = file.mimetype?.split("/")[0];
+      const looksLikeImage =
+        fileType === "image" ||
+        /\.(jpe?g|png|gif|webp|bmp|svg)(\?|$)/i.test(fileUrl || "");
 
-      if (fileType === "image") {
+      if (looksLikeImage) {
         return (
           <img
             key={index}

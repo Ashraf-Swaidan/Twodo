@@ -2,9 +2,9 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const BASE_API_URL = import.meta.env.VITE_BASE_API_URL;
+import { API_ROOT } from '../apiBase';
 
-const API_URL = `${BASE_API_URL}/invitations`;
+const API_URL = `${API_ROOT}/invitations`;
 
 
 const useInvitations = () => {
