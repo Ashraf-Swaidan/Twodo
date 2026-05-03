@@ -4,6 +4,8 @@ import { API_ROOT } from '../apiBase';
 
 const API_URL = `${API_ROOT}/auth`;
 
+/** Free-tier APIs can cold-start for a long time; avoid false “hangs” with no feedback. */
+const AUTH_REQUEST_MS = 120_000;
 
 const AuthContext = createContext();
 
@@ -40,9 +42,15 @@ const checkAvailability = async (field, value) => {
   try {
     const response = await axios.get(`${API_URL}/check-availability`, {
       params: { [field]: value },
+      timeout: AUTH_REQUEST_MS,
     });
     return response.data;
   } catch (error) {
+    if (error.code === 'ECONNABORTED') {
+      throw new Error(
+        'The server is slow to respond (it may be waking up). Wait a moment and try again.'
+      );
+    }
     throw new Error(error.response?.data?.message || 'Failed to check availability');
   }
 };
@@ -50,7 +58,11 @@ const checkAvailability = async (field, value) => {
 // Inside login function
 const login = async (email, password) => {
   try {
-    const response = await axios.post(`${API_URL}/login`, { email, password });
+    const response = await axios.post(
+      `${API_URL}/login`,
+      { email, password },
+      { timeout: AUTH_REQUEST_MS }
+    );
     const token = response.data.token;
     localStorage.setItem('token', token);
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -58,8 +70,18 @@ const login = async (email, password) => {
     
   } catch (error) {
     console.error("Login error:", error);
+    if (error.code === 'ECONNABORTED') {
+      throw new Error(
+        'Login timed out—the server may still be starting. Wait a bit and try again.'
+      );
+    }
     if (error.response && error.response.status === 401) {
       throw new Error('Invalid credentials');
+    }
+    if (!error.response) {
+      throw new Error(
+        'Cannot reach the server yet. It may be waking up—wait up to a minute and try again.'
+      );
     }
     throw new Error('An error occurred while logging in. Please try again.');
   }
@@ -67,11 +89,23 @@ const login = async (email, password) => {
 
   const register = async (userData) => {
     try {
-      const response = await axios.post(`${API_URL}/register`, userData);
+      const response = await axios.post(`${API_URL}/register`, userData, {
+        timeout: AUTH_REQUEST_MS,
+      });
       
       return response.data;
     } catch (error) {
-      throw new Error(error.response.data.message);
+      if (error.code === 'ECONNABORTED') {
+        throw new Error(
+          'Registration timed out—the server may still be starting. Wait and try again.'
+        );
+      }
+      if (!error.response) {
+        throw new Error(
+          'Cannot reach the server yet. It may be waking up—wait up to a minute and try again.'
+        );
+      }
+      throw new Error(error.response.data?.message || 'Registration failed');
     }
   };
 

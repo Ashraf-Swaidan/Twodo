@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Snackbar from '@mui/material/Snackbar';  // Import Snackbar from Material-UI
 import Alert from '@mui/material/Alert';  // Import Alert for a better styled notification
+import AuthColdStartNotice from '../components/AuthColdStartNotice';
 
 function RegisterPage() {
   const { register, checkAvailability } = useAuth();
@@ -13,7 +14,18 @@ function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [availability, setAvailability] = useState({ username: '', email: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const [slowHint, setSlowHint] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!submitting) {
+      setSlowHint(false);
+      return;
+    }
+    const t = setTimeout(() => setSlowHint(true), 8000);
+    return () => clearTimeout(t);
+  }, [submitting]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,6 +36,7 @@ function RegisterPage() {
       return;
     }
 
+    setSubmitting(true);
     try {
       await register(formData);
       setShowSnackbar(true); // Show snackbar on success
@@ -32,6 +45,8 @@ function RegisterPage() {
       }, 2000); // Delay navigating to login page for 2 seconds so the snackbar can be seen
     } catch (err) {
       setError(err.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -79,6 +94,14 @@ function RegisterPage() {
             <p className="text-md sm:text-2xl font-bold text-gray-800">Wave your life into a flow</p>
           </div>
           <p className="text-center text-gray-600">Create your account here</p>
+          <div className="my-3">
+            <AuthColdStartNotice />
+          </div>
+          {slowHint && submitting && (
+            <p className="text-sm text-center text-gray-600 max-w-md mx-auto">
+              Still connecting… the backend may be cold-starting. Give it a bit longer.
+            </p>
+          )}
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
           <form onSubmit={handleSubmit}>
@@ -159,8 +182,12 @@ function RegisterPage() {
                   </button>
                 </div>
               </div>
-              <button type="submit" className="w-full py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition">
-                Register
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                {submitting ? 'Creating account…' : 'Register'}
               </button>
             </div>
           </form>

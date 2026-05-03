@@ -1,13 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
+import AuthColdStartNotice from '../components/AuthColdStartNotice';
 
 function LoginPage() {
   const { login, loading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [slowHint, setSlowHint] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!submitting) {
+      setSlowHint(false);
+      return;
+    }
+    const t = setTimeout(() => setSlowHint(true), 8000);
+    return () => clearTimeout(t);
+  }, [submitting]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,15 +31,18 @@ function LoginPage() {
       return;
     }
 
+    setSubmitting(true);
     try {
       await login(email, password);
-      console.log('Login successful');
       navigate('/todos');
-      // Redirect logic can be added here if needed
     } catch (err) {
       setError(err.message);
+    } finally {
+      setSubmitting(false);
     }
   };
+
+  const busy = submitting || loading;
 
   return (
     <div className="flex flex-col lg:flex-row h-screen">
@@ -49,6 +64,15 @@ function LoginPage() {
             <p className="text-md sm:text-2xl font-bold text-gray-800">Wave your life into a flow</p>
           </div>
           <p className="text-center text-gray-600">login here to your account</p>
+          <div className="my-3">
+            <AuthColdStartNotice />
+          </div>
+          {slowHint && submitting && (
+            <p className="text-sm text-center text-gray-600 max-w-md mx-auto">
+              Still connecting… the backend is probably cold-starting. This can take a little while
+              on the first try.
+            </p>
+          )}
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -80,10 +104,10 @@ function LoginPage() {
 
               <button
                 type="submit"
-                className={`w-full py-2 mt-5 font-semibold text-white ${loading ? 'bg-gray-400' : 'bg-blue-600'} rounded-md hover:${loading ? '' : 'bg-blue-700'} transition`}
-                disabled={loading} // Disable button while loading
+                className={`w-full py-2 mt-5 font-semibold text-white ${busy ? 'bg-gray-400' : 'bg-blue-600'} rounded-md hover:${busy ? '' : 'bg-blue-700'} transition`}
+                disabled={busy}
               >
-                {loading ? (
+                {submitting ? (
                   <span className="flex items-center justify-center">
                     <svg
                       className="animate-spin h-5 w-5 mr-3 text-white"
